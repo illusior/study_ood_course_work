@@ -1,0 +1,10 @@
+﻿# CMake
+
+CMakeFiles/*
+
+*.cmake
+
+# CMake MSVC build
+
+*.vcxproj
+*.filters
