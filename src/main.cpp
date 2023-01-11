@@ -105,6 +105,5 @@ int main()
     glfwDestroyWindow(window);
     glfwTerminate();
 
-	ImGui::ShowDemoWindow();
 	return 0;
 }
