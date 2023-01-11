@@ -1,45 +1,163 @@
+message(STATUS "Getting externals")
+
+Include(FetchContent)
+
+## OpenGl ##
+
 find_package(OpenGL REQUIRED)
+
+## OpenGl ##
 
 ## glfw ##
 
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS
+	OFF
+	CACHE BOOL "" FORCE
+)
+set(GLFW_BUILD_TESTS
+	OFF
+	CACHE BOOL "" FORCE
+)
+set(GLFW_BUILD_EXAMPLES
+	OFF
+	CACHE BOOL "" FORCE
+)
 
-add_subdirectory(glfw)
+message(STATUS "Fetching GLFW...")
+
+FetchContent_Declare(
+	glfw
+	GIT_REPOSITORY https://github.com/glfw/glfw.git
+	# GIT_TAG        v3.3.8
+)
+
+FetchContent_GetProperties(glfw)
+if(NOT glfw_POPULATED)
+    FetchContent_Populate(glfw)
+
+    set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "Build the GLFW example programs")
+    set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "Build the GLFW test programs")
+    set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "Build the GLFW documentation")
+    set(GLFW_INSTALL OFF CACHE INTERNAL "Generate installation target")
+
+    add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
+endif()
+
+set(EXTERNAL_ILLUSIO_GLFW_INCLUDE_DIR
+	${glfw_SOURCE_DIR}/include
+	CACHE PATH "Illusio's GLFW include directory path" FORCE
+)
+
+## glfw ##
 
 ## imgui ##
 
-add_library(imgui_src STATIC
-  imgui/imgui.cpp
-  imgui/imgui_draw.cpp
-  imgui/imgui_demo.cpp
-  imgui/imgui_widgets.cpp
-  imgui/imgui_tables.cpp
+message(STATUS "Setting up ImGui...")
 
-  imgui/backends/imgui_impl_glfw.cpp
-  imgui/backends/imgui_impl_opengl3.cpp
-
-  imgui/imconfig.h
-  imgui/imgui.h
-  imgui/imgui_internal.h
-  imgui/imstb_rectpack.h
-  imgui/imstb_textedit.h
-  imgui/imstb_truetype.h
+set(EXTERNAL_ILLUSIO_IMGUI_LIB
+	imgui_lib
+	CACHE STRING "Illusio's ImGui library's name" FORCE
 )
 
-target_include_directories(imgui_src
+set(EXTERNAL_ILLUSIO_IMGUI_SRC
+	imgui/imgui.cpp
+	imgui/imgui_draw.cpp
+	imgui/imgui_demo.cpp
+	imgui/imgui_widgets.cpp
+	imgui/imgui_tables.cpp
+	
+	CACHE INTERNAL "Illusio's ImGUI's Source Files" FORCE
+)
+
+set(EXTERNAL_ILLUSIO_IMGUI_BACKENDS_GLFW_OPENGL3_SRC
+	imgui/backends/imgui_impl_glfw.cpp
+	imgui/backends/imgui_impl_opengl3.cpp
+
+	CACHE INTERNAL "Illusio's ImGUI Backend's Source Files" FORCE
+)
+
+set(EXTERNAL_ILLUSIO_IMGUI_HEADERS
+	imgui/imconfig.h
+	imgui/imgui.h
+	imgui/imgui_internal.h
+	imgui/imstb_rectpack.h
+	imgui/imstb_textedit.h
+	imgui/imstb_truetype.h
+
+	CACHE INTERNAL "Illusio's ImGUI's Header Files" FORCE
+)
+
+add_library(
+	${EXTERNAL_ILLUSIO_IMGUI_LIB}
+STATIC
+	${EXTERNAL_ILLUSIO_IMGUI_HEADERS}
+	${EXTERNAL_ILLUSIO_IMGUI_SRC}
+	${EXTERNAL_ILLUSIO_IMGUI_BACKENDS_GLFW_OPENGL3_SRC}
+)
+
+target_include_directories(
+	${EXTERNAL_ILLUSIO_IMGUI_LIB}
 PUBLIC
-  ${CMAKE_CURRENT_LIST_DIR}
-  imgui
-  glfw/include
+	${CMAKE_CURRENT_LIST_DIR}
+		imgui
+	${EXTERNAL_ILLUSIO_GLFW_INCLUDE_DIR}
+)
+
+## imgui ##
+
+## Catch2 ##
+
+function(fetch_catch2)
+
+	message(STATUS "Fetching Catch2...")
+
+	FetchContent_Declare(
+		Catch2
+		GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+		GIT_TAG        v3.2.1
+	)
+
+	FetchContent_MakeAvailable(Catch2)
+	list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+
+	include(Catch)
+
+endfunction()
+
+## Catch2 ##
+
+## app_external_deps ##
+
+set(EXTERNALS_ILLUSIO_LIB
+	externals_illusio_lib
+	CACHE STRING "Application's externals library name" FORCE
+)
+
+add_library(${EXTERNALS_ILLUSIO_LIB} INTERFACE)
+
+target_link_libraries(
+	${EXTERNALS_ILLUSIO_LIB}
+INTERFACE
+	${EXTERNAL_ILLUSIO_IMGUI_LIB}
+	glfw
+	OpenGL::GL
 )
 
 ## app_external_deps ##
 
-add_library(app_external_deps INTERFACE)
-target_link_libraries(app_external_deps INTERFACE
-  imgui_src
-  glfw
-  OpenGL::GL
-)
+## MSVC ##
+
+if(MSVC)
+	source_group(
+		TREE ${CMAKE_CURRENT_SOURCE_DIR}
+		PREFIX "Header Files"
+		FILES ${EXTERNAL_ILLUSIO_IMGUI_HEADERS}
+	)
+	source_group(
+		TREE ${CMAKE_CURRENT_SOURCE_DIR}
+		PREFIX "Source Files"
+		FILES ${EXTERNAL_ILLUSIO_IMGUI_SRC} ${EXTERNAL_ILLUSIO_IMGUI_BACKENDS_GLFW_OPENGL3_SRC}
+	)
+endif()
+
+## MSVC ##

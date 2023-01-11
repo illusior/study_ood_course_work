@@ -1,9 +1,0 @@
-﻿# CMake
-
-CMakeFiles/*
-*.cmake
-
-# VS
-
-*.vcxproj
-*.filters
