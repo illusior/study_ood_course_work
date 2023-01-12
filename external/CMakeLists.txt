@@ -126,6 +126,44 @@ endfunction()
 
 ## Catch2 ##
 
+## Boost ##
+
+message(STATUS "Fetching Boost...")
+
+FetchContent_Declare(
+	Boost
+	URL https://github.com/boostorg/boost/releases/download/boost-1.81.0/boost-1.81.0.tar.xz
+	URL_MD5 6cf0cdd797bca685910d527ae3c08cb3
+	DOWNLOAD_EXTRACT_TIMESTAMP ON
+)
+
+set(BOOST_INCLUDE_LIBRARIES uuid)
+
+FetchContent_MakeAvailable(Boost)
+
+## Boost ##
+
+## ISpringTech's FastSignals ##
+
+FetchContent_Declare(
+	FastSignals
+	GIT_REPOSITORY https://github.com/ispringtech/FastSignals.git
+)
+
+if(NOT fastsignals_POPULATED)
+	set(BUILD_TESTING OFF)
+
+	message(STATUS "Fetching ISpringTech's FastSignals")
+	FetchContent_Populate(FastSignals)
+
+	message(STATUS "Configuring Boost")
+	add_subdirectory(${fastsignals_SOURCE_DIR} ${fastsignals_BINARY_DIR})
+
+	unset(BUILD_TESTING)
+endif()
+
+## ISpringTech's FastSignals ##
+
 ## app_external_deps ##
 
 set(EXTERNALS_ILLUSIO_LIB
@@ -141,6 +179,8 @@ INTERFACE
 	${EXTERNAL_ILLUSIO_IMGUI_LIB}
 	glfw
 	OpenGL::GL
+
+	Boost::uuid
 )
 
 ## app_external_deps ##
