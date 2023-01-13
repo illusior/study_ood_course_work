@@ -28,7 +28,7 @@ message(STATUS "Fetching GLFW...")
 FetchContent_Declare(
 	glfw
 	GIT_REPOSITORY https://github.com/glfw/glfw.git
-	# GIT_TAG        v3.3.8
+	GIT_TAG        3.3.8
 )
 
 FetchContent_GetProperties(glfw)
@@ -158,6 +158,15 @@ if(NOT fastsignals_POPULATED)
 
 	message(STATUS "Configuring Boost")
 	add_subdirectory(${fastsignals_SOURCE_DIR} ${fastsignals_BINARY_DIR})
+
+	set(fastsignals_SOURCE_DIR
+		${fastsignals_SOURCE_DIR}
+		CACHE PATH "ISpringTech's FastSignal's library source directory path" FORCE
+	)
+	set(FASTSIGNALS_LIB_NAME
+		libfastsignals
+		CACHE STRING "ISpringTech's FastSignal's library name" FORCE
+	)
 
 	unset(BUILD_TESTING)
 endif()
