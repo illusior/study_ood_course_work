@@ -5,7 +5,7 @@
 #include "../IShape.h"
 #include "../IShapes.h"
 
-namespace illusio::domain::drawable::shape
+namespace illusio::domain::shape
 {
 
 class IShapeGroup : public IShape
@@ -20,4 +20,4 @@ private:
 	using IShape::SetFrame;
 };
 
-} // namespace illusio::domain::drawable::shape
+} // namespace illusio::domain::shape

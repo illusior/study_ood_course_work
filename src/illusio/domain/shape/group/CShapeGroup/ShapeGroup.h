@@ -7,7 +7,7 @@
 #include "common/uuid/uuid.hpp"
 #include "domain/common/style/CStyle/StyleComposite.h"
 
-namespace illusio::domain::drawable::shape
+namespace illusio::domain::shape
 {
 
 class ShapeGroup : public IShapeGroup
@@ -24,12 +24,12 @@ public:
 	explicit ShapeGroup(pass_key);
 
 	// <<interface>> IShape
-	constexpr const PointD& GetBasePoint() const noexcept final;
-	constexpr const Style& GetOutlineStyle() const noexcept final;
-	constexpr const Uuid& GetUuid() const noexcept final;
+	const PointD& GetBasePoint() const noexcept final;
+	const Style& GetOutlineStyle() const noexcept final;
+	const Uuid& GetUuid() const noexcept final;
 	FrameD GetFrame() const noexcept final;
 
-	constexpr void SetFrame(const FrameD& frame) final;
+	void SetFrame(const FrameD& frame) final;
 
 	IShapeGroupSharedPtr GetShapeGroup() final;
 	IShapeGroupSharedConstPtr GetShapeGroup() const final;
@@ -40,8 +40,8 @@ public:
 	IShapeSharedPtr GetShape(size_t index) final;
 	IShapeSharedConstPtr GetShape(size_t index) const final;
 
-	void InsertShape(const IShapeSharedPtr& shape, std::optional<size_t> index = std::nullopt) final;
-	void RemoveShape(size_t index) final;
+	void InsertShape(const IShapeSharedPtr& shape, std::optional<size_t> index = std::nullopt) override;
+	void RemoveShape(size_t index) override;
 	// >>>>>>>>>>>>>>>>>>>>>
 
 protected:
@@ -62,4 +62,4 @@ private:
 	StyleComposite m_outlineStyle;
 };
 
-} // namespace illusio::domain::drawable::shape
+} // namespace illusio::domain::shape

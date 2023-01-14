@@ -12,22 +12,22 @@ constexpr Style::Style(RGBAColor color)
 
 using RGBAColor = Style::RGBAColor;
 
-constexpr RGBAColor Style::GetColor() const noexcept
+RGBAColor Style::GetColor() const noexcept
 {
 	return m_rgbaColor;
 }
 
-constexpr void Style::SetColor(RGBAColor color)
+void Style::SetColor(RGBAColor color)
 {
 	m_rgbaColor = color;
 }
 
-constexpr bool Style::operator==(const IStyle& other) const
+bool Style::operator==(const IStyle& other) const
 {
 	return m_rgbaColor == other.GetColor();
 }
 
-constexpr bool Style::operator!=(const IStyle& other) const
+bool Style::operator!=(const IStyle& other) const
 {
 	return !(*this == other);
 }

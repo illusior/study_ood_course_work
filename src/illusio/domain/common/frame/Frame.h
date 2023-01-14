@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <algorithm>
+
 #include "../point/Point.h"
 #include "../size/Size.h"
 
@@ -10,17 +12,47 @@ template <typename T>
 struct Frame
 {
 	explicit constexpr Frame() = default;
-	explicit constexpr Frame(const Point<T>& leftTop, const Size<T>& size);
-	explicit constexpr Frame(T xLeftTop, T yLeftTop, T width, T height);
+	explicit constexpr Frame(const Point<T>& leftTop, const Size<T>& size)
+		: pLeftTop(leftTop)
+		, size(size)
+	{
+	}
 
-	constexpr bool operator==(const Frame<T>& other) const noexcept;
-	constexpr bool operator!=(const Frame<T>& other) const noexcept;
+	explicit constexpr Frame(T xLeftTop, T yLeftTop, T width, T height)
+		: pLeftTop(xLeftTop, yLeftTop)
+		, size(width, height)
+	{
+	}
+
+	constexpr bool operator==(const Frame<T>& other) const noexcept
+	{
+		return pLeftTop = other.pLeftTop && size == other.size;
+	}
+
+	constexpr bool operator!=(const Frame<T>& other) const noexcept
+	{
+		return !(*this == other);
+	}
 
 	Point<T> pLeftTop;
 	Size<T> size;
 };
 
 template <typename T, typename Container>
-Frame<T> GetMaxFrame(const Container& framesContainer);
+static inline Frame<T> GetMaxFrame(const Container& framesContainer)
+{
+	T minX{}, minY{}, maxX{}, maxY{};
+
+	for (const auto& rect : framesContainer)
+	{
+		minX = std::min(minX, rect.pLeftTop.x);
+		minY = std::min(minY, rect.pLeftTop.y);
+
+		maxX = std::max(maxX, rect.pLeftTop.x + rect.size.width);
+		maxY = std::max(maxY, rect.pLeftTop.y + rect.size.height);
+	}
+
+	return Frame<T>(minX, minY, std::abs(minX + maxX), std::abs(minY + maxY));
+}
 
 } // namespace illusio::domain::common::axes

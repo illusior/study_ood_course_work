@@ -54,9 +54,17 @@ set(_illusio_lib_headers
 	${ILLUSIO_LIB_SRC}/domain/shape/solid/IShapeSolid.h
 	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ShapeSolidImpl.h
 
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ellipse/Ellipse.h
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/rectangle/Rectangle.h
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/triangle/Triangle.h
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ellipse/IEllipse.h
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ellipse/IEllipse_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.h
+
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/rectangle/IRectangle.h
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/rectangle/IRectangle_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/rectangle/CRectangle/Rectangle.h
+
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/triangle/ITriangle.h
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/triangle/ITriangle_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/triangle/CTriangle/Triangle.h
 		#SHAPE#
 	#DOMAIN#
 
@@ -80,12 +88,14 @@ set(_illusio_lib_sources
 	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/StyleComposite.cpp
 		#COMMON#
 		#SHAPE#
+	${ILLUSIO_LIB_SRC}/domain/shape/simple/ShapeImpl.cpp
+
 	${ILLUSIO_LIB_SRC}/domain/shape/group/CShapeGroup/ShapeGroup.cpp
 	${ILLUSIO_LIB_SRC}/domain/shape/group/CShapeGroup/ShapesDraft.cpp
 
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ellipse/Ellipse.cpp
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/rectangle/Rectangle.cpp
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/triangle/Triangle.cpp
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.cpp
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/rectangle/CRectangle/Rectangle.cpp
+	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/triangle/CTriangle/Triangle.cpp
 		#SHAPE#
 	#DOMAIN#
 )
@@ -120,16 +130,58 @@ PUBLIC
 
 set(ILLUSIO_APP illusio_app)
 
-add_executable(${ILLUSIO_APP}
+set(ILLUSIO_APP_SRC
+	app
+	CACHE PATH "Illusio's library sources directory"
+)
+
+set(_illusio_app_headers
+
 	pch.h
+
+	#APP#
+		#EDIT#
+	${ILLUSIO_APP_SRC}/edit/IUndoableEdit_fwd.h
+	${ILLUSIO_APP_SRC}/edit/IUndoableEdit.h
+
+	${ILLUSIO_APP_SRC}/edit/CEdit/AbstractUndoableEdit.h
+
+	${ILLUSIO_APP_SRC}/edit/CEdit/compound/IUndoableCompoundEdit_fwd.h
+	${ILLUSIO_APP_SRC}/edit/CEdit/compound/IUndoableCompoundEdit.h
+
+	${ILLUSIO_APP_SRC}/edit/CEdit/compound/CUndoableCompoundEdit/CompoundEdit.h
+
+	${ILLUSIO_APP_SRC}/edit/manager/UndoManager.h
+		#EDIT#
+	#APP#
+
+)
+
+set(_illusio_app_sources
 
 	pch.cpp
 	main.cpp
+
+	#APP#
+		#EDIT#
+	${ILLUSIO_APP_SRC}/edit/CEdit/AbstractUndoableEdit.cpp
+
+	${ILLUSIO_APP_SRC}/edit/CEdit/compound/CUndoableCompoundEdit/CompoundEdit.cpp
+
+	${ILLUSIO_APP_SRC}/edit/manager/UndoManager.cpp
+		#EDIT#
+	#APP#
+
+)
+
+add_executable(${ILLUSIO_APP}
+	${_illusio_app_headers}
+	${_illusio_app_sources}
 )
 
 target_link_libraries(
 	${ILLUSIO_APP}
-PRIVATE
+PUBLIC
 	${ILLUSIO_LIB}
 )
 
@@ -154,6 +206,17 @@ if(MSVC)
 		TREE ${CMAKE_CURRENT_SOURCE_DIR}
 		PREFIX "Source Files"
 		FILES ${_illusio_lib_sources}
+	)
+
+	source_group(
+		TREE ${CMAKE_CURRENT_SOURCE_DIR}
+		PREFIX "Header Files"
+		FILES ${_illusio_app_headers}
+	)
+	source_group(
+		TREE ${CMAKE_CURRENT_SOURCE_DIR}
+		PREFIX "Source Files"
+		FILES ${_illusio_app_sources}
 	)
 endif()
 

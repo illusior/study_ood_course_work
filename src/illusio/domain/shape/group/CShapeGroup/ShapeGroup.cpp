@@ -2,7 +2,7 @@
 
 #include "ShapeGroup.h"
 
-namespace illusio::domain::drawable::shape
+namespace illusio::domain::shape
 {
 
 IShapeGroupSharedPtr ShapeGroup::Create()
@@ -38,13 +38,13 @@ FrameD ShapeGroup::GetFrame() const noexcept
 	{
 		rects.push_back(shape->GetFrame());
 	}
-	 
+
 	return domain::common::axes::GetMaxFrame<double>(rects);
 }
 
 using PointD = ShapeGroup::PointD;
 
-constexpr const PointD& ShapeGroup::GetBasePoint() const noexcept
+const PointD& ShapeGroup::GetBasePoint() const noexcept
 {
 	auto myFrame = GetFrame();
 	auto x = myFrame.pLeftTop.x + myFrame.size.width / 2;
@@ -56,17 +56,17 @@ constexpr const PointD& ShapeGroup::GetBasePoint() const noexcept
 
 using Style = ShapeGroup::Style;
 
-constexpr const Style& ShapeGroup::GetOutlineStyle() const noexcept
+const Style& ShapeGroup::GetOutlineStyle() const noexcept
 {
 	return *m_outlineStyle;
 }
 
-constexpr const ShapeGroup::Uuid& ShapeGroup::GetUuid() const noexcept
+const ShapeGroup::Uuid& ShapeGroup::GetUuid() const noexcept
 {
 	return m_uuid;
 }
 
-constexpr void ShapeGroup::SetFrame(const FrameD& frame)
+void ShapeGroup::SetFrame(const FrameD& frame)
 {
 }
 
@@ -148,4 +148,4 @@ Connection ShapeGroup::DoOnFrameChange(const OnFrameChange&)
 	return Connection();
 }
 
-} // namespace illusio::domain::drawable::shape
+} // namespace illusio::domain::shape

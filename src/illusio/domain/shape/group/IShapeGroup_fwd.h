@@ -2,7 +2,7 @@
 
 #include <memory>
 
-namespace illusio::domain::drawable::shape
+namespace illusio::domain::shape
 {
 
 class IShapeGroup;
@@ -13,4 +13,4 @@ using IShapeGroupPtr = std::unique_ptr<IShapeGroup>;
 using IShapeGroupSharedPtr = std::shared_ptr<IShapeGroup>;
 using IShapeGroupSharedConstPtr = std::shared_ptr<const IShapeGroup>;
 
-} // namespace illusio::domain::drawable::shape
+} // namespace illusio::domain::shape

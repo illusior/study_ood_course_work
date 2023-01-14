@@ -4,13 +4,20 @@
 
 #include "ShapeGroup.h"
 
-namespace illusio::domain::drawable::shape
+namespace illusio::domain::shape
 {
 
 class ShapesDraft : public ShapeGroup
 {
 public:
+	using MyBase = ShapeGroup;
+
 	using Connection = illusio::common::connection;
+
+	// <<interface>> IShapes
+	void InsertShape(const IShapeSharedPtr& shape, std::optional<size_t> index = std::nullopt) override;
+	void RemoveShape(size_t index) override;
+	// >>>>>>>>>>>>>>>>>>>>>
 
 	using OnShapeAdded = std::function<void(size_t)>;
 	Connection DoOnShapeAdded(const OnShapeAdded& handler);
@@ -26,4 +33,4 @@ private:
 	SignalShapeDeleted m_shapeDeleted;
 };
 
-} // namespace illusio::domain::drawable::shape
+} // namespace illusio::domain::shape
