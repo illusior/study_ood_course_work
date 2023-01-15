@@ -10,7 +10,6 @@ namespace app::edit
 {
 
 class CompoundEdit : public AbstractUndoableEdit
-	, virtual public IUndoableCompoundEdit
 {
 public:
 	using MyBase = AbstractUndoableEdit;

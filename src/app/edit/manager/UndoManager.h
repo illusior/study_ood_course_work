@@ -8,8 +8,8 @@ namespace app::edit
 class UndoManager : private CompoundEdit
 {
 public:
-	using IUndoableCompoundEdit::Undo;
-	using IUndoableCompoundEdit::Redo;
+	using IUndoableEdit::Undo;
+	using IUndoableEdit::Redo;
 
 	// <<interface>> IUndoableEdit
 	bool CanUndo() const final;
@@ -19,7 +19,7 @@ public:
 	void AddAndExecuteEdit(const Edit& edit);
 
 private:
-	// <<abstract>> AbstractUndoableEdit
+	// <<interface>> AbstractUndoableEdit
 	bool DerivedExecute() final;
 	bool DerivedUndo() final;
 	bool DerivedRedo() final;

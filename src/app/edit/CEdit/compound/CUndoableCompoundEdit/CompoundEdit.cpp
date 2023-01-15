@@ -18,17 +18,14 @@ bool CompoundEdit::AddEdit(const Edit& edit)
 		return true;
 	}
 
-	if (auto& lastEdit = m_edits.back())
+	if (auto& lastEdit = m_edits.back();
+		!lastEdit->AddEdit(edit))
 	{
-		if (auto lastCompoundEdit = std::dynamic_pointer_cast<IUndoableCompoundEdit>(lastEdit);
-			lastCompoundEdit != nullptr && !lastCompoundEdit->AddEdit(edit))
+		if (edit->ReplaceEdit(lastEdit))
 		{
-			if (edit->ReplaceEdit(lastEdit))
-			{
-				m_edits.pop_back();
-			}
-			m_edits.push_back(edit);
+			m_edits.pop_back();
 		}
+		m_edits.push_back(edit);
 	}
 
 	return true;

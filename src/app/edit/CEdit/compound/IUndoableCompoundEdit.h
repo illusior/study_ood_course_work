@@ -8,7 +8,7 @@ namespace app::edit
 class IUndoableCompoundEdit : public IUndoableEdit
 {
 public:
-	virtual bool AddEdit(const Edit& edit) = 0;
+	// virtual bool AddEdit(const Edit& edit) = 0;
 
 	virtual ~IUndoableCompoundEdit() = default;
 };

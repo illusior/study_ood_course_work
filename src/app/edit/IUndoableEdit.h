@@ -19,6 +19,7 @@ public:
 	virtual void Destroy() = 0;
 
 	using Edit = IUndoableEditSharedPtr;
+	virtual bool AddEdit(const Edit& edit) = 0;
 	virtual bool ReplaceEdit(const Edit& edit) = 0;
 
 	virtual void operator()() = 0;

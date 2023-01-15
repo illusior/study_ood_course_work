@@ -19,6 +19,7 @@ public:
 
 	void Destroy() override;
 
+	bool AddEdit(const Edit& edit) override;
 	bool ReplaceEdit(const Edit& edit) override;
 
 	void operator()() final;
