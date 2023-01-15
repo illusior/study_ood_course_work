@@ -2,17 +2,17 @@
 
 #include <functional>
 
-#include "ShapeGroup.h"
+#include "ShapeGroup.hpp"
 
 namespace illusio::domain::shape
 {
 
-class ShapesDraft : public ShapeGroup
+class ShapesDraft : public ShapeGroup<IShapeGroup>
 {
 public:
-	using MyBase = ShapeGroup;
+	using MyBase = ShapeGroup<illusio::domain::shape::IShapeGroup>;
 
-	using Connection = illusio::common::connection;
+	using Connection = MyBase::Connection;
 
 	// <<interface>> IShapes
 	void InsertShape(const IShapeSharedPtr& shape, std::optional<size_t> index = std::nullopt) override;

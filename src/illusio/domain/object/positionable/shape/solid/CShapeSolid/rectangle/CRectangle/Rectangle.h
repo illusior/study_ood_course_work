@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "../IRectangle.h"
-#include "../../ShapeSolidImpl.h"
+#include "../../ShapeSolidImpl.hpp"
 
 namespace illusio::domain::shape::solid
 {

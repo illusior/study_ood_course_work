@@ -1,31 +1,32 @@
 ﻿#pragma once
 
 #include "../IShapeSolid.h"
-#include "../../simple/ShapeImpl.h"
+#include "../../simple/ShapeImpl.hpp"
 
 namespace illusio::domain::shape::solid
 {
 
-template <typename Base = IShapeSolid>
-class ShapeSolidImpl : public simple::ShapeImpl<Base>
+template <typename IBase = IShapeSolid>
+class ShapeSolidImpl : public simple::ShapeImpl<IBase>
 {
 public:
-	using MyBase = simple::ShapeImpl<Base>;
+	using MyBase = simple::ShapeImpl<IBase>;
 
-	using FrameD = typename MyBase::FrameD;
-	using PointD = typename MyBase::PointD;
-	using Style = typename MyBase::Style;
-	using StylePtr = typename MyBase::StylePtr;
-	using SizeD = typename MyBase::SizeD;
+	using Style = typename IBase::Style;
+	using StylePtr = typename IBase::StylePtr;
 
 	// <<interface>> IShapeSolid
-	const Style& GetFillColor() const noexcept final
+	const Style& GetFillColor() const noexcept override
 	{
 		return *m_fillColor;
 	}
 	// >>>>>>>>>>>>>>>>>>>>>>>>>
 
 protected:
+	using PointD = typename IBase::PointD;
+
+	using SizeD = MyBase::SizeD;
+
 	explicit constexpr ShapeSolidImpl() = default;
 	explicit constexpr ShapeSolidImpl(const PointD& basePoint, const SizeD& size, StylePtr&& outlineStyle, StylePtr&& fillColor)
 		: MyBase(basePoint, size, std::move(outlineStyle))

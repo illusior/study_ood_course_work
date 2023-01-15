@@ -14,7 +14,7 @@ set(_illusio_lib_headers
 
 	#COMMON#
 	${ILLUSIO_LIB_SRC}/common/signals/signal.hpp
-	${ILLUSIO_LIB_SRC}/common/uuid/uuid.hpp
+	${ILLUSIO_LIB_SRC}/common/uuid/Uuid.h
 	#COMMON#
 
 	#DOMAIN#
@@ -37,35 +37,48 @@ set(_illusio_lib_headers
 	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/Style.h
 	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/StyleComposite.h
 		#COMMON#
-		#SHAPE#
-	${ILLUSIO_LIB_SRC}/domain/shape/IShape_fwd.h
-	${ILLUSIO_LIB_SRC}/domain/shape/IShape.h
-	${ILLUSIO_LIB_SRC}/domain/shape/simple/ShapeImpl.h
 
-	${ILLUSIO_LIB_SRC}/domain/shape/IShapes_fwd.h
-	${ILLUSIO_LIB_SRC}/domain/shape/IShapes.h
+		#OBJECT#
+	${ILLUSIO_LIB_SRC}/domain/object/IObject_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/IObject.h
+	${ILLUSIO_LIB_SRC}/domain/object/ObjectImpl.hpp
 
-	${ILLUSIO_LIB_SRC}/domain/shape/group/IShapeGroup_fwd.h
-	${ILLUSIO_LIB_SRC}/domain/shape/group/IShapeGroup.h
-	${ILLUSIO_LIB_SRC}/domain/shape/group/CShapeGroup/ShapeGroup.h
-	${ILLUSIO_LIB_SRC}/domain/shape/group/CShapeGroup/ShapesDraft.h
+			#POSITIONABLE#
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/IPositionable_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/IPositionable.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/PositionableImpl.hpp
 
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/IShapeSolid_fwd.h
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/IShapeSolid.h
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ShapeSolidImpl.h
+				#SHAPE#
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/IShape_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/IShape.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/simple/ShapeImpl.hpp
 
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ellipse/IEllipse.h
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ellipse/IEllipse_fwd.h
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/IShapes_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/IShapes.h
 
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/rectangle/IRectangle.h
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/rectangle/IRectangle_fwd.h
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/rectangle/CRectangle/Rectangle.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/group/IShapeGroup_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/group/IShapeGroup.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/group/CShapeGroup/ShapeGroup.hpp
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/group/CShapeGroup/ShapesDraft.h
 
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/triangle/ITriangle.h
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/triangle/ITriangle_fwd.h
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/triangle/CTriangle/Triangle.h
-		#SHAPE#
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/IShapeSolid_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/IShapeSolid.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/ShapeSolidImpl.hpp
+
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/ellipse/IEllipse.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/ellipse/IEllipse_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.h
+
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/rectangle/IRectangle.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/rectangle/IRectangle_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/rectangle/CRectangle/Rectangle.h
+
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/triangle/ITriangle.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/triangle/ITriangle_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/triangle/CTriangle/Triangle.h
+				#SHAPE#
+			#POSITIONABLE#
+		#OBJECT#
 	#DOMAIN#
 
 	#VIEW#
@@ -79,6 +92,10 @@ set(_illusio_lib_sources
 	${ILLUSIO_LIB_SRC}/pch_illusio.cpp
 	# Add new lib's sources here
 
+	#COMMON#
+	${ILLUSIO_LIB_SRC}/common/uuid/Uuid.cpp
+	#COMMON#
+
 	#DOMAIN#
 		#COMMON#
 	${ILLUSIO_LIB_SRC}/domain/common/Frame/Frame.cpp
@@ -87,16 +104,18 @@ set(_illusio_lib_sources
 	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/Style.cpp
 	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/StyleComposite.cpp
 		#COMMON#
-		#SHAPE#
-	${ILLUSIO_LIB_SRC}/domain/shape/simple/ShapeImpl.cpp
 
-	${ILLUSIO_LIB_SRC}/domain/shape/group/CShapeGroup/ShapeGroup.cpp
-	${ILLUSIO_LIB_SRC}/domain/shape/group/CShapeGroup/ShapesDraft.cpp
+		#OBJECT#
+			#POSITIONABLE#
+				#SHAPE#
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/group/CShapeGroup/ShapesDraft.cpp
 
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.cpp
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/rectangle/CRectangle/Rectangle.cpp
-	${ILLUSIO_LIB_SRC}/domain/shape/solid/CShapeSolid/triangle/CTriangle/Triangle.cpp
-		#SHAPE#
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.cpp
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/rectangle/CRectangle/Rectangle.cpp
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/triangle/CTriangle/Triangle.cpp
+				#SHAPE#
+			#POSITIONABLE#
+		#OBJECT#
 	#DOMAIN#
 )
 

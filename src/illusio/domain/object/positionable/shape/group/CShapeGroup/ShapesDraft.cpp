@@ -5,8 +5,6 @@
 namespace illusio::domain::shape
 {
 
-using Connection = ShapesDraft::Connection;
-
 void ShapesDraft::InsertShape(const IShapeSharedPtr& shape, std::optional<size_t> index)
 {
 	MyBase::InsertShape(shape, index);
@@ -22,6 +20,8 @@ void ShapesDraft::RemoveShape(size_t index)
 
 	m_shapeDeleted(index, *removingShape);
 }
+
+using Connection = ShapesDraft::Connection;
 
 Connection ShapesDraft::DoOnShapeAdded(const OnShapeAdded& handler)
 {
