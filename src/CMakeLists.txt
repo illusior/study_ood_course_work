@@ -35,7 +35,7 @@ set(_illusio_lib_headers
 	${ILLUSIO_LIB_SRC}/domain/common/style/IStyle_fwd.h
 	${ILLUSIO_LIB_SRC}/domain/common/style/IStyle.h
 	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/Style.h
-	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/StyleComposite.h
+#	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/StyleComposite.h
 		#COMMON#
 
 		#OBJECT#
@@ -48,18 +48,21 @@ set(_illusio_lib_headers
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/IPositionable.h
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/PositionableImpl.hpp
 
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/IPositionables_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/IPositionables.h
+
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/IPositionableGroup_fwd.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/IPositionableGroup.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionableGroup.hpp
+
+				#POSITIONABLES_DRAFT#
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionableDraft.h
+				#POSITIONABLES_DRAFT#
+
 				#SHAPE#
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/IShape_fwd.h
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/IShape.h
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/simple/ShapeImpl.hpp
-
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/IShapes_fwd.h
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/IShapes.h
-
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/group/IShapeGroup_fwd.h
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/group/IShapeGroup.h
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/group/CShapeGroup/ShapeGroup.hpp
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/group/CShapeGroup/ShapesDraft.h
 
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/IShapeSolid_fwd.h
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/IShapeSolid.h
@@ -80,11 +83,6 @@ set(_illusio_lib_headers
 			#POSITIONABLE#
 		#OBJECT#
 	#DOMAIN#
-
-	#VIEW#
-	${ILLUSIO_LIB_SRC}/view/canvas/ICanvas_fwd.h
-	${ILLUSIO_LIB_SRC}/view/canvas/ICanvas.h
-	#VIEW#
 )
 
 set(_illusio_lib_sources
@@ -102,14 +100,16 @@ set(_illusio_lib_sources
 	${ILLUSIO_LIB_SRC}/domain/common/point/Point.cpp
 	${ILLUSIO_LIB_SRC}/domain/common/size/Size.cpp
 	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/Style.cpp
-	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/StyleComposite.cpp
 		#COMMON#
 
 		#OBJECT#
 			#POSITIONABLE#
-				#SHAPE#
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/group/CShapeGroup/ShapesDraft.cpp
 
+				#POSITIONABLES_DRAFT#
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionableDraft.cpp
+				#POSITIONABLES_DRAFT#
+
+				#SHAPE#
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.cpp
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/rectangle/CRectangle/Rectangle.cpp
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/triangle/CTriangle/Triangle.cpp
@@ -159,6 +159,18 @@ set(_illusio_app_headers
 	pch.h
 
 	#APP#
+
+	${ILLUSIO_APP_SRC}/Defenitions.h
+
+	${ILLUSIO_APP_SRC}/Application.h
+
+		#PRESENTER#
+	${ILLUSIO_APP_SRC}/presenter/IDocument_fwd.h
+	${ILLUSIO_APP_SRC}/presenter/IDocument.h
+
+	${ILLUSIO_APP_SRC}/presenter/draft_editor/DraftPresenter.h
+		#PRESENTER#
+
 		#EDIT#
 	${ILLUSIO_APP_SRC}/edit/IUndoableEdit_fwd.h
 	${ILLUSIO_APP_SRC}/edit/IUndoableEdit.h
@@ -172,6 +184,33 @@ set(_illusio_app_headers
 
 	${ILLUSIO_APP_SRC}/edit/manager/UndoManager.h
 		#EDIT#
+
+		#MODEL#
+	${ILLUSIO_APP_SRC}/model/draft_editor/AppModelDraft.h
+
+	${ILLUSIO_APP_SRC}/model/positionable/AppModelPositionable.h
+		#MODEL#
+
+		#WINDOW#
+	${ILLUSIO_APP_SRC}/window/Layout.h
+
+	${ILLUSIO_APP_SRC}/window/IWindow_fwd.h
+	${ILLUSIO_APP_SRC}/window/IWindow.h
+
+	${ILLUSIO_APP_SRC}/window/manager/IWindowManager_fwd.h
+	${ILLUSIO_APP_SRC}/window/manager/IWindowManager.h
+
+	${ILLUSIO_APP_SRC}/window/manager/CWindowManager/imgui/WindowManagerImGui.h
+
+	${ILLUSIO_APP_SRC}/window/CWindow/BaseWindow.h
+
+	${ILLUSIO_APP_SRC}/window/CWindow/imgui/WindowImGui.h
+	${ILLUSIO_APP_SRC}/window/CWindow/imgui/backends/ImGuiBackends.h
+
+	${ILLUSIO_APP_SRC}/window/CWindow/main/imgui/WMainImGui.h
+
+	${ILLUSIO_APP_SRC}/window/CWindow/draft_editor/imgui/WDraftEditorImGui.h
+		#WINDOW#
 	#APP#
 
 )
@@ -182,6 +221,13 @@ set(_illusio_app_sources
 	main.cpp
 
 	#APP#
+
+	${ILLUSIO_APP_SRC}/Application.cpp
+
+		#PRESENTER#
+	${ILLUSIO_APP_SRC}/presenter/draft_editor/DraftPresenter.cpp
+		#PRESENTER#
+
 		#EDIT#
 	${ILLUSIO_APP_SRC}/edit/CEdit/AbstractUndoableEdit.cpp
 
@@ -189,6 +235,27 @@ set(_illusio_app_sources
 
 	${ILLUSIO_APP_SRC}/edit/manager/UndoManager.cpp
 		#EDIT#
+
+		#MODEL#
+	${ILLUSIO_APP_SRC}/model/draft_editor/AppModelDraft.cpp
+
+	${ILLUSIO_APP_SRC}/model/positionable/AppModelPositionable.cpp
+		#MODEL#
+
+		#WINDOW#
+	${ILLUSIO_APP_SRC}/window/Layout.cpp
+
+	${ILLUSIO_APP_SRC}/window/manager/CWindowManager/imgui/WindowManagerImGui.cpp
+
+	${ILLUSIO_APP_SRC}/window/CWindow/BaseWindow.cpp
+
+	${ILLUSIO_APP_SRC}/window/CWindow/imgui/WindowImGui.cpp
+	${ILLUSIO_APP_SRC}/window/CWindow/imgui/backends/ImGuiBackends.cpp
+
+	${ILLUSIO_APP_SRC}/window/CWindow/main/imgui/WMainImGui.cpp
+
+	${ILLUSIO_APP_SRC}/window/CWindow/draft_editor/imgui/WDraftEditorImGui.cpp
+		#WINDOW#
 	#APP#
 
 )
@@ -209,6 +276,12 @@ target_include_directories(
 PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}
 	${ILLUSIO_LIB_SRC}
+)
+
+set_target_properties(
+	${ILLUSIO_APP}
+PROPERTIES
+	VS_USER_PROPS "${FASTSIGNALS_VS_USER_PROPS_PATH}"
 )
 
 ## Illusio application ##

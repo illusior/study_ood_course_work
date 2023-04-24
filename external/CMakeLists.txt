@@ -10,19 +10,6 @@ find_package(OpenGL REQUIRED)
 
 ## glfw ##
 
-set(GLFW_BUILD_DOCS
-	OFF
-	CACHE BOOL "" FORCE
-)
-set(GLFW_BUILD_TESTS
-	OFF
-	CACHE BOOL "" FORCE
-)
-set(GLFW_BUILD_EXAMPLES
-	OFF
-	CACHE BOOL "" FORCE
-)
-
 message(STATUS "Fetching GLFW...")
 
 FetchContent_Declare(
@@ -32,13 +19,13 @@ FetchContent_Declare(
 )
 
 FetchContent_GetProperties(glfw)
-if(NOT glfw_POPULATED)
-    FetchContent_Populate(glfw)
 
-    set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "Build the GLFW example programs")
-    set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "Build the GLFW test programs")
-    set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "Build the GLFW documentation")
-    set(GLFW_INSTALL OFF CACHE INTERNAL "Generate installation target")
+if(NOT glfw_POPULATED)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+    FetchContent_Populate(glfw)
 
     add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
 endif()
@@ -137,6 +124,15 @@ FetchContent_Declare(
 	DOWNLOAD_EXTRACT_TIMESTAMP ON
 )
 
+set(BOOST_ENABLE_MPI OFF)
+set(BOOST_ENABLE_PYTHON OFF)
+set(BOOST_STACKTRACE_ENABLE_NOOP OFF)
+set(BOOST_STACKTRACE_ENABLE_BACKTRACE OFF)
+set(BOOST_STACKTRACE_ENABLE_ADDR2LINE OFF)
+set(BOOST_STACKTRACE_ENABLE_BASIC OFF)
+set(BOOST_STACKTRACE_ENABLE_WINDBG OFF)
+set(BOOST_STACKTRACE_ENABLE_WINDBG_CACHED OFF)
+
 set(BOOST_INCLUDE_LIBRARIES uuid)
 
 FetchContent_MakeAvailable(Boost)
@@ -147,7 +143,7 @@ FetchContent_MakeAvailable(Boost)
 
 FetchContent_Declare(
 	FastSignals
-	GIT_REPOSITORY https://github.com/ispringtech/FastSignals.git
+	GIT_REPOSITORY https://github.com/beta442/ispring_fast_signals
 )
 
 if(NOT fastsignals_POPULATED)
@@ -167,8 +163,11 @@ if(NOT fastsignals_POPULATED)
 		libfastsignals
 		CACHE STRING "ISpringTech's FastSignal's library name" FORCE
 	)
-
-	unset(BUILD_TESTING)
+	get_target_property(_temp libfastsignals VS_USER_PROPS)
+	set(FASTSIGNALS_VS_USER_PROPS_PATH
+		${_temp}
+		CACHE FILEPATH "Path to file that contains user macros in MSCV" FORCE
+	)
 endif()
 
 ## ISpringTech's FastSignals ##

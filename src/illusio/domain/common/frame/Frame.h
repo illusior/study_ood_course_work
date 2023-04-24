@@ -11,6 +11,8 @@ namespace illusio::domain::common::axes
 template <typename T>
 struct Frame
 {
+	using DimensionType = T;
+
 	explicit constexpr Frame() = default;
 	explicit constexpr Frame(const Point<T>& leftTop, const Size<T>& size)
 		: pLeftTop(leftTop)

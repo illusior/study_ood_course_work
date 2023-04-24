@@ -10,5 +10,6 @@ class IPositionable;
 using IPositionableRawPtr = IPositionable*;
 using IPositionablePtr = std::unique_ptr<IPositionable>;
 using IPositionableSharedPtr = std::shared_ptr<IPositionable>;
+using IPositionableSharedConstPtr = std::shared_ptr<const IPositionable>;
 
 } // namespace illusio::domain

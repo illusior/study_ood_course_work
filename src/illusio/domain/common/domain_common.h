@@ -9,7 +9,6 @@
 #include "size/CSize/SizeD.h"
 
 #include "style/CStyle/Style.h"
-#include "style/CStyle/StyleComposite.h"
 
 namespace illusio::domain::common
 {
@@ -25,6 +24,5 @@ using axes::SizeD;
 using style::IStylePtr;
 using style::IStyle;
 using style::Style;
-using style::StyleComposite;
 
 } // namespace illusio::domain::common

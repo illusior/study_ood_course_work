@@ -8,14 +8,14 @@
 namespace illusio::domain
 {
 
-template <typename Base = IPositionable>
-class PositionableImpl : public ObjectImpl<Base>
+template <typename IBase = IPositionable>
+class PositionableImpl : public ObjectImpl<IBase>
 {
 public:
-	using MyBase = ObjectImpl<Base>;
+	using MyBase = ObjectImpl<IBase>;
 
-	using FrameD = typename Base::FrameD;
-	using PointD = typename Base::PointD;
+	using FrameD = typename IBase::FrameD;
+	using PointD = typename IBase::PointD;
 
 	const PointD& GetBasePoint() const noexcept final
 	{
@@ -30,20 +30,40 @@ public:
 	void SetFrame(const FrameD& frame) override
 	{
 		m_frame = frame;
+		m_frameChanged(m_frame);
+	}
+
+	using Connection = typename IBase::Connection;
+	using OnFrameChange = typename IBase::OnFrameChange;
+	Connection DoOnFrameChange(const OnFrameChange& handler) override
+	{
+		return m_frameChanged.connect(handler);
+	}
+
+	IPositionableGroupSharedPtr GetPositionableGroup() override
+	{
+		return nullptr;
+	}
+
+	IPositionableGroupSharedConstPtr GetPositionableGroup() const override
+	{
+		return nullptr;
 	}
 
 protected:
 	using SizeD = common::axes::SizeD;
 
 	constexpr PositionableImpl() = default;
-	
 	constexpr PositionableImpl(const PointD& basePoint, const SizeD& size)
 		: m_frame(basePoint, size)
 	{
 	}
 
 private:
-	FrameD m_frame;
+	using Signal = illusio::common::signal<void(const FrameD&)>;
+
+	FrameD m_frame = FrameD{};
+	Signal m_frameChanged;
 };
 
 } // namespace illusio::domain
