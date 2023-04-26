@@ -5,8 +5,15 @@
 namespace app::window
 {
 
+WindowImGui::WindowImGui(Title title)
+	: MyBase(title)
+{
+}
+
 void WindowImGui::Update()
 {
+	MyBase::Update();
+
 	if (Begin())
 	{
 		RenderContent();
@@ -16,11 +23,7 @@ void WindowImGui::Update()
 
 bool WindowImGui::Begin()
 {
-	if (!IsOpen())
-	{
-		return false;
-	}
-	return ImGui::Begin(m_title.data());
+	return IsOpen() && ImGui::Begin(m_title.data());
 }
 
 void WindowImGui::End()

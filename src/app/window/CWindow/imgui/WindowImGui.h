@@ -11,11 +11,8 @@ public:
 	using MyBase = BaseWindow;
 
 protected:
-	explicit constexpr WindowImGui() = default;
-	explicit constexpr WindowImGui(Title title)
-		: MyBase(title)
-	{
-	}
+	explicit WindowImGui() = default;
+	explicit WindowImGui(Title title);
 
 	// <<interface>> IWindow
 	void Update() final;

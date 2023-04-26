@@ -5,7 +5,7 @@
 namespace illusio::domain::common::style
 {
 
-constexpr Style::Style(RGBAColor color)
+Style::Style(RGBAColor color)
 	: m_rgbaColor(color)
 {
 }

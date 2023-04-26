@@ -8,8 +8,8 @@ namespace illusio::domain::common::style
 class Style : public IStyle
 {
 public:
-	constexpr explicit Style() = default;
-	constexpr explicit Style(RGBAColor color);
+	explicit Style() = default;
+	explicit Style(RGBAColor color);
 
 	RGBAColor GetColor() const noexcept override;
 	void SetColor(RGBAColor color) override;

@@ -33,6 +33,22 @@ public:
 	}
 
 	// <<interface>> IPositionable
+	using UuidOpt = typename IBase::UuidOpt;
+	using PointD = typename IBase::PointD;
+	UuidOpt GetUuidOfPositionableAtPoint(const PointD& point)
+	{
+		for (auto& positionable : m_positionables)
+		{
+			auto res = positionable->GetUuidOfPositionableAtPoint(point);
+			if (res.has_value())
+			{
+				return res;
+			}
+		}
+
+		return std::nullopt;
+	}
+
 	FrameD GetFrame() const noexcept final
 	{
 		std::vector<FrameD> rects;
@@ -45,7 +61,7 @@ public:
 		return domain::common::axes::GetMaxFrame<typename FrameD::DimensionType>(rects);
 	}
 
-	void SetFrame(const FrameD& frame) final
+	void SetFrame(const FrameD&) final
 	{
 	}
 
@@ -57,6 +73,21 @@ public:
 	IPositionableGroupSharedConstPtr GetPositionableGroup() const final
 	{
 		return this->shared_from_this();
+	}
+
+	using Canvas = typename IBase::Canvas;
+	void DrawAtCanvas(Canvas canvas) const override
+	{
+		if (canvas == nullptr)
+		{
+			throw std::runtime_error("[illusio][PositionableGroup] Can't draw positionables at canvas. Null given");
+		}
+
+		auto positionablesCopy = m_positionables;
+		for (const auto& positionable : positionablesCopy)
+		{
+			positionable->DrawAtCanvas(canvas);
+		}
 	}
 	// >>>>>>>>>>>>>>>>>>>>
 
@@ -92,9 +123,9 @@ public:
 		return *it;
 	}
 
-	void InsertPositionable(const IPositionableSharedPtr& Positionable, std::optional<size_t> index = std::nullopt) override
+	void InsertPositionable(const IPositionableSharedPtr& positionable, std::optional<size_t> index = std::nullopt) override
 	{
-		if (std::addressof(*Positionable) == this)
+		if (std::addressof(*positionable) == this)
 		{
 			return;
 		}
@@ -106,7 +137,9 @@ public:
 		auto it = m_positionables.begin();
 		std::advance(it, insertIndex);
 
-		m_positionables.insert(it, Positionable);
+		m_positionables.insert(it, positionable);
+
+		this->EmitChangeSignal();
 	}
 
 	void RemovePositionable(size_t index) override
@@ -120,8 +153,46 @@ public:
 		std::advance(it, index);
 
 		m_positionables.erase(it);
+
+		this->EmitChangeSignal();
 	}
 	// >>>>>>>>>>>>>>>>>>>>>
+
+	// <<interface>> IPositionableGroup
+	using UuidOpt = typename IBase::UuidOpt;
+	void SelectPositionable(const UuidOpt& uuid) override
+	{
+		if (!uuid.has_value())
+		{
+			m_selectionFrame = std::nullopt;
+			return;
+		}
+
+		if (this->GetUuid() == uuid)
+		{
+			m_selectionFrame = GetFrame();
+		}
+
+		for (auto& positionable : m_positionables)
+		{
+			if (positionable->GetUuid() == uuid)
+			{
+				m_selectionFrame = positionable->GetFrame();
+			}
+			if (auto posWithNestedPos = positionable->GetPositionableGroup())
+			{
+				posWithNestedPos->SelectPositionable(uuid);
+				m_selectionFrame = posWithNestedPos->GetSelectionFrame();
+			}
+		}
+	}
+
+	using FrameOpt = typename IBase::FrameOpt;
+	const FrameOpt& GetSelectionFrame() const noexcept
+	{
+		return m_selectionFrame;
+	}
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 protected:
 	using Connection = typename IBase::Connection;
@@ -133,16 +204,15 @@ protected:
 
 private:
 	using OnFrameChange = typename IBase::OnFrameChange;
-
-	using PositionablesContainer = std::vector<IPositionableSharedPtr>;
-
-	// TODO: see IPositionableGroup.h
 	Connection DoOnFrameChange(const OnFrameChange&) final
-	{
+	{// TODO: see IPositionableGroup.h
 		return Connection();
 	}
 
+	using PositionablesContainer = std::vector<IPositionableSharedPtr>;
 	PositionablesContainer m_positionables;
+
+	FrameOpt m_selectionFrame;
 };
 
 } // namespace illusio::domain

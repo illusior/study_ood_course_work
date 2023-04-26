@@ -15,6 +15,9 @@ public:
 	using Style = typename IBase::Style;
 	using StylePtr = typename IBase::StylePtr;
 
+	using PointD = typename IBase::PointD;
+	using SizeD = MyBase::SizeD;
+
 	// <<interface>> IShapeSolid
 	const Style& GetFillColor() const noexcept override
 	{
@@ -23,10 +26,6 @@ public:
 	// >>>>>>>>>>>>>>>>>>>>>>>>>
 
 protected:
-	using PointD = typename IBase::PointD;
-
-	using SizeD = MyBase::SizeD;
-
 	explicit constexpr ShapeSolidImpl() = default;
 	explicit constexpr ShapeSolidImpl(const PointD& basePoint, const SizeD& size, StylePtr&& outlineStyle, StylePtr&& fillColor)
 		: MyBase(basePoint, size, std::move(outlineStyle))

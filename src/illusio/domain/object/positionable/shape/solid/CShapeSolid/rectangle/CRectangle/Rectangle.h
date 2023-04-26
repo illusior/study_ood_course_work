@@ -16,6 +16,11 @@ public:
 		: MyBase(basePoint, size, std::move(outlineStyle), std::move(fillColor))
 	{
 	}
+
+	// <<interface>> IPositionable
+	using Canvas = typename IRectangle::Canvas;
+	void DrawAtCanvas(Canvas canvas) const final;
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>
 };
 
 } // namespace illusio::domain::shape::solid

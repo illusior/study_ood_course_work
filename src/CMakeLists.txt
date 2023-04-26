@@ -12,6 +12,13 @@ set(_illusio_lib_headers
 	${ILLUSIO_LIB_SRC}/pch_illusio.h
 	# Add new lib's headers here
 
+	#CANVAS#
+	${ILLUSIO_LIB_SRC}/canvas/ICanvas_fwd.h
+	${ILLUSIO_LIB_SRC}/canvas/ICanvas.h
+
+	${ILLUSIO_LIB_SRC}/canvas/CCanvas/imgui/CanvasImGui.h
+	#CANVAS#
+
 	#COMMON#
 	${ILLUSIO_LIB_SRC}/common/signals/signal.hpp
 	${ILLUSIO_LIB_SRC}/common/uuid/Uuid.h
@@ -56,12 +63,15 @@ set(_illusio_lib_headers
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionableGroup.hpp
 
 				#POSITIONABLES_DRAFT#
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionableDraft.h
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionablesDraft.h
 				#POSITIONABLES_DRAFT#
 
 				#SHAPE#
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/ShapeTypes.h
+
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/IShape_fwd.h
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/IShape.h
+
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/simple/ShapeImpl.hpp
 
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/IShapeSolid_fwd.h
@@ -90,6 +100,10 @@ set(_illusio_lib_sources
 	${ILLUSIO_LIB_SRC}/pch_illusio.cpp
 	# Add new lib's sources here
 
+	#CANVAS#
+	${ILLUSIO_LIB_SRC}/canvas/CCanvas/imgui/CanvasImGui.cpp
+	#CANVAS#
+
 	#COMMON#
 	${ILLUSIO_LIB_SRC}/common/uuid/Uuid.cpp
 	#COMMON#
@@ -106,7 +120,7 @@ set(_illusio_lib_sources
 			#POSITIONABLE#
 
 				#POSITIONABLES_DRAFT#
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionableDraft.cpp
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionablesDraft.cpp
 				#POSITIONABLES_DRAFT#
 
 				#SHAPE#
@@ -186,9 +200,9 @@ set(_illusio_app_headers
 		#EDIT#
 
 		#MODEL#
-	${ILLUSIO_APP_SRC}/model/draft_editor/AppModelDraft.h
+#	${ILLUSIO_APP_SRC}/model/draft_editor/AppModelDraft.h
 
-	${ILLUSIO_APP_SRC}/model/positionable/AppModelPositionable.h
+#	${ILLUSIO_APP_SRC}/model/positionable/AppModelPositionable.h
 		#MODEL#
 
 		#WINDOW#
@@ -237,9 +251,9 @@ set(_illusio_app_sources
 		#EDIT#
 
 		#MODEL#
-	${ILLUSIO_APP_SRC}/model/draft_editor/AppModelDraft.cpp
+#	${ILLUSIO_APP_SRC}/model/draft_editor/AppModelDraft.cpp
 
-	${ILLUSIO_APP_SRC}/model/positionable/AppModelPositionable.cpp
+#	${ILLUSIO_APP_SRC}/model/positionable/AppModelPositionable.cpp
 		#MODEL#
 
 		#WINDOW#

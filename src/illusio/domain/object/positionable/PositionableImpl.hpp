@@ -17,6 +17,19 @@ public:
 	using FrameD = typename IBase::FrameD;
 	using PointD = typename IBase::PointD;
 
+	// <<interface>> IPositionable
+	using UuidOpt = typename IBase::UuidOpt;
+	UuidOpt GetUuidOfPositionableAtPoint(const PointD& point)
+	{
+		if (auto frame = this->GetFrame();
+			frame.ContainsPoint(point))
+		{
+			return this->GetUuid();
+		}
+
+		return std::nullopt;
+	}
+
 	const PointD& GetBasePoint() const noexcept final
 	{
 		return m_frame.pLeftTop;
@@ -31,6 +44,7 @@ public:
 	{
 		m_frame = frame;
 		m_frameChanged(m_frame);
+		m_changeSignal();
 	}
 
 	using Connection = typename IBase::Connection;
@@ -38,6 +52,12 @@ public:
 	Connection DoOnFrameChange(const OnFrameChange& handler) override
 	{
 		return m_frameChanged.connect(handler);
+	}
+
+	using OnChange = typename IBase::OnChange;
+	Connection DoOnChange(const OnChange& handler) override
+	{
+		return m_changeSignal.connect(handler);
 	}
 
 	IPositionableGroupSharedPtr GetPositionableGroup() override
@@ -50,6 +70,16 @@ public:
 		return nullptr;
 	}
 
+	using Canvas = typename IBase::Canvas;
+	void DrawAtCanvas(Canvas canvas) const override
+	{
+		if (canvas == nullptr)
+		{
+			throw std::runtime_error("[illusio][PositionableImpl] Can't draw positionable at canvas. Null given");
+		}
+	}
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 protected:
 	using SizeD = common::axes::SizeD;
 
@@ -59,11 +89,19 @@ protected:
 	{
 	}
 
+	virtual void EmitChangeSignal()
+	{
+		m_changeSignal();
+	}
+
 private:
 	using Signal = illusio::common::signal<void(const FrameD&)>;
+	using SignalOnChange = illusio::common::signal<void()>;
 
 	FrameD m_frame = FrameD{};
+
 	Signal m_frameChanged;
+	SignalOnChange m_changeSignal;
 };
 
 } // namespace illusio::domain

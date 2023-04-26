@@ -12,12 +12,11 @@ class IWindow
 public:
 	using Title = std::string_view;
 
+	virtual bool Init() = 0;
+	virtual void Update() = 0;
 	virtual bool Close() noexcept = 0;
 
-	virtual void Update() = 0;
-
 	virtual Title GetTitle() const noexcept = 0;
-
 	virtual bool IsOpen() const noexcept = 0;
 
 	virtual ~IWindow() = default;

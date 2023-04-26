@@ -1,6 +1,8 @@
 ﻿#pragma once
 
+#include <functional>
 #include <optional>
+#include <vector>
 
 #include "IPositionables_fwd.h"
 

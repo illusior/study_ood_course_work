@@ -13,7 +13,7 @@ public:
 	virtual void Update() = 0;
 	virtual void Render() = 0;
 
-	using Window = IWindowSharedPtr;
+	using Window = IWindowPtr;
 	virtual void AddWindow(Window&& window) = 0;
 
 	virtual ~IWindowManager() = default;

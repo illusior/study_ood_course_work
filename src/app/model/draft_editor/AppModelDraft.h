@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "../positionable/AppModelPositionable.h"
-#include "illusio/domain/draft/IPositionableDraft.h"
+//#include "illusio/domain/draft/IPositionableDraft.h"
 
 namespace app::model
 {
@@ -13,9 +13,9 @@ public:
 	size_t GetPositionablesCount() const noexcept;
 
 private:
-	using PositionablesDraft = illusio::domain::IPositionableDraftPtr;
+	/*using PositionablesDraft = illusio::domain::IPositionableDraftPtr;
 
-	PositionablesDraft m_positionablesDraft;
+	PositionablesDraft m_positionablesDraft;*/
 
 };
 

@@ -17,6 +17,13 @@ public:
 	{
 	}
 
+	// <<interface>> IPositionable
+	using UuidOpt = typename ITriangle::UuidOpt;
+	UuidOpt GetUuidOfPositionableAtPoint(const PointD& point);
+
+	void DrawAtCanvas(Canvas canvas) const final;
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 	// <<interface>> ITriangle
 	PointD GetVertex1() const noexcept override;
 	PointD GetVertex2() const noexcept override;

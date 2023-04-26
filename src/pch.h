@@ -1,10 +1,12 @@
 ﻿#pragma once
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "app/defenitions.h"
