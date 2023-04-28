@@ -29,8 +29,6 @@ public:
 	// >>>>>>>>>>>>>>>>>>>>>>>
 
 private:
-	void DoOnViewScrolling(const ImVec2& scroll);
-
 	using UndoManager = edit::UndoManager;
 	UndoManager m_undoManager;
 

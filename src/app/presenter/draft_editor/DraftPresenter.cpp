@@ -20,7 +20,6 @@ DraftPresenter::DraftPresenter(View windowDraft)
 	{
 		throw std::logic_error("[app][presenter] DraftPresenter must be initialized with View. Null given");
 	}
-	m_view->OnScrollingChange(std::bind(&DraftPresenter::DoOnViewScrolling, this, std::placeholders::_1));
 }
 
 constexpr auto DEFAULT_POSITIONABLE_SIZE = 100;
@@ -113,20 +112,6 @@ bool DraftPresenter::CanUndo() const noexcept
 bool DraftPresenter::CanRedo() const noexcept
 {
 	return m_undoManager.CanRedo();
-}
-
-void DraftPresenter::DoOnViewScrolling(const ImVec2& scroll)
-{
-	auto positionablesCount = m_positionableDraft->GetPositionablesCount();
-	for (size_t i = 0; i < positionablesCount; ++i)
-	{
-		auto positionable = m_positionableDraft->GetPositionable(i);
-		auto newFrame = positionable->GetFrame();
-		newFrame.pLeftTop.x += scroll.x;
-		newFrame.pLeftTop.y += scroll.y;
-
-		positionable->SetFrame(newFrame);
-	}
 }
 
 } // namespace app::presenter

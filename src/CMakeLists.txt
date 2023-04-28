@@ -110,7 +110,7 @@ set(_illusio_lib_sources
 
 	#DOMAIN#
 		#COMMON#
-	${ILLUSIO_LIB_SRC}/domain/common/Frame/Frame.cpp
+	${ILLUSIO_LIB_SRC}/domain/common/frame/Frame.cpp
 	${ILLUSIO_LIB_SRC}/domain/common/point/Point.cpp
 	${ILLUSIO_LIB_SRC}/domain/common/size/Size.cpp
 	${ILLUSIO_LIB_SRC}/domain/common/style/CStyle/Style.cpp

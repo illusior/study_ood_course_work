@@ -18,11 +18,6 @@ public:
 	using Size = Point;
 	using Color = domain::common::color::RGBAColor;
 
-	virtual void SetLeftTop(const Point& leftTop) = 0;
-	virtual void SetSize(const Size& size) = 0;
-	virtual const Point& GetLeftTop() noexcept = 0;
-	virtual const Size& GetSize() noexcept = 0;
-
 	virtual void AddFilledPolygon(const Points& points, const Color& color) = 0;
 	virtual void AddLine(const Point& p1, const Point& p2, const Color& color) = 0;
 	virtual void AddPolyline(const Points& points, const Color& color, double thikness) = 0;
@@ -32,6 +27,15 @@ public:
 
 	virtual void Draw() = 0;
 	virtual void Clear() = 0;
+
+	virtual void SetLeftTop(const Point& leftTop) = 0;
+	virtual void SetOrigin(const Point& p) = 0;
+	virtual void SetSize(const Size& size) = 0;
+
+	virtual const Point& GetLeftTop() noexcept = 0;
+	virtual const Point& GetOrigin() noexcept = 0;
+	virtual const Point& GetRightBottom() noexcept = 0;
+	virtual const Size& GetSize() noexcept = 0;
 
 	virtual ~ICanvas() = default;
 };

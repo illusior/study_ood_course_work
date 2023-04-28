@@ -64,9 +64,9 @@ Triangle::UuidOpt Triangle::GetUuidOfPositionableAtPoint(const PointD& point)
 	return std::nullopt;
 }
 
-void Triangle::DrawAtCanvas(Canvas canvas) const
+void Triangle::AddToCanvas(Canvas canvas) const
 {
-	MyBase::DrawAtCanvas(canvas);
+	MyBase::AddToCanvas(canvas);
 
 	auto frame = GetFrame();
 	auto& size = frame.size;

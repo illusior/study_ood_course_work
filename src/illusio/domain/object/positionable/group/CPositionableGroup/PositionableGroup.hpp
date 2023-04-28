@@ -76,7 +76,7 @@ public:
 	}
 
 	using Canvas = typename IBase::Canvas;
-	void DrawAtCanvas(Canvas canvas) const override
+	void AddToCanvas(Canvas canvas) const override
 	{
 		if (canvas == nullptr)
 		{
@@ -86,7 +86,7 @@ public:
 		auto positionablesCopy = m_positionables;
 		for (const auto& positionable : positionablesCopy)
 		{
-			positionable->DrawAtCanvas(canvas);
+			positionable->AddToCanvas(canvas);
 		}
 	}
 	// >>>>>>>>>>>>>>>>>>>>

@@ -31,9 +31,9 @@ Ellipse::UuidOpt Ellipse::GetUuidOfPositionableAtPoint(const PointD& point)
 	return std::nullopt;
 }
 
-void Ellipse::DrawAtCanvas(Canvas canvas) const
+void Ellipse::AddToCanvas(Canvas canvas) const
 {
-	MyBase::DrawAtCanvas(canvas);
+	MyBase::AddToCanvas(canvas);
 
 	auto frame = GetFrame();
 	auto& pLT = frame.pLeftTop;

@@ -21,7 +21,7 @@ public:
 	using UuidOpt = typename ITriangle::UuidOpt;
 	UuidOpt GetUuidOfPositionableAtPoint(const PointD& point);
 
-	void DrawAtCanvas(Canvas canvas) const final;
+	void AddToCanvas(Canvas canvas) const final;
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	// <<interface>> ITriangle

@@ -28,8 +28,9 @@ struct Frame
 
 	constexpr bool ContainsPoint(const Point<T>& p) const noexcept
 	{
-		auto maxY = pLeftTop.y + size.height;
-		return (std::min(p.x, pLeftTop.x) == pLeftTop.x && std::max(p.y, maxY) == maxY);
+		auto inX = (p.x >= pLeftTop.x) && (p.x <= pLeftTop.x + size.width);
+		auto inY = (p.y >= pLeftTop.y) && (p.y <= pLeftTop.y + size.height);
+		return inX && inY;
 	}
 
 	constexpr bool operator==(const Frame<T>& other) const noexcept

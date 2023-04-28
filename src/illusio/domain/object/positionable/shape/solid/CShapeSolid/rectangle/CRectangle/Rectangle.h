@@ -19,7 +19,7 @@ public:
 
 	// <<interface>> IPositionable
 	using Canvas = typename IRectangle::Canvas;
-	void DrawAtCanvas(Canvas canvas) const final;
+	void AddToCanvas(Canvas canvas) const final;
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>
 };
 

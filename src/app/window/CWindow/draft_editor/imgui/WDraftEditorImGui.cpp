@@ -36,7 +36,7 @@ void WDraftEditorImGui::End()
 	ImGui::End();
 }
 
-std::tuple<ImVec2, ImVec2, ImVec2> GetCanvasRendernBoundInfo()
+WDraftEditorImGui::CanvasRenderingBoundInfo WDraftEditorImGui::GetCanvasRendernBoundInfo() const
 {
 	auto pLT = ImGui::GetCursorScreenPos(); // pointLeftTop
 	auto size = ImGui::GetContentRegionAvail();
@@ -60,7 +60,11 @@ const auto DEFAULT_SIZE_FOR_SHAPES = illusio::domain::common::axes::SizeD{ 100, 
 
 void WDraftEditorImGui::AddShape(ShapeType type)
 {
-	m_draftPresenter->AddShape(type, Point{ m_scrolling.x, m_scrolling.y }, DEFAULT_SIZE_FOR_SHAPES);
+	auto& canvasLT = m_canvas->GetLeftTop();
+	auto& canvasSize = m_canvas->GetSize();
+	auto center = Point{ canvasLT.x + canvasSize.x / 2 - DEFAULT_SIZE_FOR_SHAPES.width / 2 - m_scrolling.x,
+		canvasLT.y + canvasSize.y / 2 - DEFAULT_SIZE_FOR_SHAPES.height / 2 - m_scrolling.y};
+	m_draftPresenter->AddShape(type, center, DEFAULT_SIZE_FOR_SHAPES);
 }
 
 WDraftEditorImGui::CanvasSharedPtr WDraftEditorImGui::GetCanvas()
@@ -85,14 +89,14 @@ void WDraftEditorImGui::AddDraftGridToCanvas()
 	{
 		for (float x = fmodf(m_scrolling.x, m_gridStep); x < canvasSize.x; x += m_gridStep)
 		{
-			m_canvas->AddLine(Point{ canvasLeftTopPoint.x + x, canvasLeftTopPoint.y },
-				Point{ canvasLeftTopPoint.x + x, canvasRightBottomPoint.y },
+			m_canvas->AddLine(Point{ canvasLeftTopPoint.x + x, 0.0f },
+				Point{ canvasLeftTopPoint.x + x, canvasLeftTopPoint.y + canvasRightBottomPoint.y },
 				m_gridColor);
 		}
 		for (float y = fmodf(m_scrolling.y, m_gridStep); y < canvasSize.y; y += m_gridStep)
 		{
-			m_canvas->AddLine(Point{ canvasLeftTopPoint.x, canvasLeftTopPoint.y + y },
-				Point{ canvasRightBottomPoint.x, canvasLeftTopPoint.y + y },
+			m_canvas->AddLine(Point{ 0.0f, canvasLeftTopPoint.y + y },
+				Point{ canvasLeftTopPoint.x + canvasRightBottomPoint.x, canvasLeftTopPoint.y + y },
 				m_gridColor);
 		}
 	}
@@ -101,14 +105,18 @@ void WDraftEditorImGui::AddDraftGridToCanvas()
 void WDraftEditorImGui::ResetCanvas()
 {
 	m_canvas->Clear();
+	m_canvas->SetOrigin(Point{ 0, 0 });
 
 	auto [canvasLeftTopPoint, canvasRightBottomPoint, canvasSize] = GetCanvasRendernBoundInfo();
 
 	m_canvas->SetLeftTop(Point{ canvasLeftTopPoint.x, canvasLeftTopPoint.y });
 	m_canvas->SetSize(Point{ canvasSize.x, canvasSize.y });
 
-	m_canvas->AddRectFilled(Point{ canvasLeftTopPoint.x, canvasLeftTopPoint.y },
-		Point{ canvasRightBottomPoint.x, canvasRightBottomPoint.y }, m_backgroundColor);
+	// add backround
+	m_canvas->AddRectFilled(Point{ 0, 0 },
+		Point{ canvasLeftTopPoint.x + canvasRightBottomPoint.x, canvasLeftTopPoint.y + canvasRightBottomPoint.y }, m_backgroundColor);
+
+	AddDraftGridToCanvas();
 }
 
 void WDraftEditorImGui::HandleInput()
@@ -129,8 +137,6 @@ void WDraftEditorImGui::HandleInput()
 		{
 			m_scrolling.x += io.MouseDelta.x;
 			m_scrolling.y += io.MouseDelta.y;
-
-			m_scrollingChangeSignal(io.MouseDelta);
 		}
 
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
@@ -138,13 +144,13 @@ void WDraftEditorImGui::HandleInput()
 			auto pos = ImGui::GetMousePos();
 			/*std::cout << "x: " << pos.x << " y: " << pos.y << "\n";
 			std::cout << "scrolling x: " << m_scrolling.x << " y: " << m_scrolling.y << "\n";*/
-			auto uuidO = m_draftPresenter->GetUuidOfPositionableAtPoint(Point{ pos.x, pos.y });
+			auto uuidO = m_draftPresenter->GetUuidOfPositionableAtPoint(Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y });
 			m_draftPresenter->SelectPositionable(uuidO);
 
-			/*std::cout << "id1\n"; 
-			if (id1.has_value())
+			/*std::cout << "id1\n";
+			if (uuidO.has_value())
 			{
-				std::cout << id1->data << '\n';
+				std::cout << uuidO->data << '\n';
 			}
 			else
 			{
@@ -157,11 +163,6 @@ void WDraftEditorImGui::HandleInput()
 void WDraftEditorImGui::RenderContent()
 {
 	ResetCanvas();
-
-	AddDraftGridToCanvas();
-
-	auto pos = m_draftPresenter->GetPositionableGroup();
-	pos->DrawAtCanvas(m_canvas.get());
 
 	const auto& selectionFrameO = m_draftPresenter->GetSelectionFrame();
 	if (selectionFrameO.has_value())
@@ -176,12 +177,12 @@ void WDraftEditorImGui::RenderContent()
 
 	HandleInput();
 
-	m_canvas->Draw();
-}
+	m_canvas->SetOrigin(Point{ m_scrolling.x, m_scrolling.y });
 
-WDraftEditorImGui::Connection WDraftEditorImGui::OnScrollingChange(const OnScrollingCallback& handler)
-{
-	return m_scrollingChangeSignal.connect(handler);
+	auto pos = m_draftPresenter->GetPositionableGroup();
+	pos->AddToCanvas(m_canvas.get());
+
+	m_canvas->Draw();
 }
 
 } // namespace app::window

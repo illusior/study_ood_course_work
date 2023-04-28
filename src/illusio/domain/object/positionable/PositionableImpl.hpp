@@ -71,7 +71,7 @@ public:
 	}
 
 	using Canvas = typename IBase::Canvas;
-	void DrawAtCanvas(Canvas canvas) const override
+	void AddToCanvas(Canvas canvas) const override
 	{
 		if (canvas == nullptr)
 		{

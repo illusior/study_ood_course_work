@@ -16,12 +16,6 @@ public:
 	explicit CanvasImGui() = default;
 
 	// <<interface>> ICanvas
-	virtual void SetLeftTop(const Point& leftTop) final;
-	virtual void SetSize(const Size& size) final;
-
-	virtual const Point& GetLeftTop() noexcept final;
-	virtual const Size& GetSize() noexcept final;
-
 	void AddFilledPolygon(const Points& points, const Color& color) final;
 	void AddLine(const Point& p1, const Point& p2, const Color& color) final;
 	void AddPolyline(const Points& points, const Color& color, double thikness) final;
@@ -31,15 +25,23 @@ public:
 
 	void Draw() final;
 	void Clear() final;
+
+	void SetLeftTop(const Point& leftTop) final;
+	void SetOrigin(const Point& p) final;
+	void SetSize(const Size& size) final;
+
+	const Point& GetLeftTop() noexcept final;
+	const Point& GetOrigin() noexcept final;
+	const Point& GetRightBottom() noexcept final;
+	const Size& GetSize() noexcept final;
 	// >>>>>>>>>>>>>>>>>>>>>
 
 private:
-	Point m_leftTop;
+	Point m_origin, m_leftTop;
 	Size m_size;
 
 	using DrawAction = std::function<void()>;
 	using DrawActionSequence = std::vector<DrawAction>;
-
 	DrawActionSequence m_drawingsSequence;
 };
 

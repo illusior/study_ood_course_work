@@ -38,7 +38,6 @@ void ImGuiBackends::Init(GLFWwindow*& window)
 
 	glfwSetErrorCallback(glfw_error_callback);
 
-	const char* glsl_version = "#version 130";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
@@ -47,8 +46,6 @@ void ImGuiBackends::Init(GLFWwindow*& window)
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-
-	ImGuiIO& io = ImGui::GetIO();
 
 	ImGui::StyleColorsLight();
 

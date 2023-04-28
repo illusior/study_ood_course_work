@@ -5,9 +5,9 @@
 namespace illusio::domain::shape::solid
 {
 
-void Rectangle::DrawAtCanvas(Canvas canvas) const
+void Rectangle::AddToCanvas(Canvas canvas) const
 {
-	MyBase::DrawAtCanvas(canvas);
+	MyBase::AddToCanvas(canvas);
 
 	auto frame = GetFrame();
 	auto& size = frame.size;

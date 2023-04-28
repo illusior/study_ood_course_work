@@ -22,16 +22,11 @@ public:
 	void ToggleGrid() noexcept;
 	using ShapeType = illusio::domain::shape::ShapeType;
 	void AddShape(ShapeType type);
-	void ChangeInsertShapeType(ShapeType type);
 
 	using CanvasSharedPtr = illusio::canvas::ICanvasSharedPtr;
 	CanvasSharedPtr GetCanvas();
 
 	bool IsGridEnabled() noexcept;
-
-	using OnScrollingCallback = std::function<void(const ImVec2&)>;
-	using Connection = illusio::common::connection;
-	Connection OnScrollingChange(const OnScrollingCallback& handler);
 
 private:
 	// <<abstract>> BaseWindow
@@ -47,14 +42,17 @@ private:
 	void ResetCanvas();
 	void HandleInput();
 
+	using CanvasRenderingBoundInfo = std::tuple<ImVec2, ImVec2, ImVec2>; // pointLeftTop, pointRightBottom, size
+	CanvasRenderingBoundInfo GetCanvasRendernBoundInfo() const;
+
+	//ImVec2 m_boundingsSize = ImVec2(5, 10);
+
 	bool m_isGridEnabled = true;
 	float m_gridStep = 64.0f;
 	ImU32 m_gridColor = IM_COL32(200, 200, 200, 40);
 	ImU32 m_backgroundColor = IM_COL32(100, 100, 100, 255);
 
 	ImVec2 m_scrolling = ImVec2(0, 0);
-	using ScrollingChangeSignal = illusio::common::signal<void(const ImVec2&)>;
-	ScrollingChangeSignal m_scrollingChangeSignal;
 
 	CanvasSharedPtr m_canvas;
 

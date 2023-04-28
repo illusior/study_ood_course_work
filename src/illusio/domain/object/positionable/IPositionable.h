@@ -43,7 +43,7 @@ public:
 	virtual IPositionableGroupSharedConstPtr GetPositionableGroup() const = 0;
 
 	using Canvas = canvas::ICanvasRawPtr;
-	virtual void DrawAtCanvas(Canvas canvas) const = 0;
+	virtual void AddToCanvas(Canvas canvas) const = 0;
 
 	virtual ~IPositionable() = default;
 };
