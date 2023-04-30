@@ -112,6 +112,7 @@ void CanvasImGui::SetOrigin(const Point& p)
 void CanvasImGui::SetLeftTop(const Point& leftTop)
 {
 	m_leftTop = leftTop;
+	m_rightBottom = Point{ leftTop.x + m_size.x, leftTop.y + m_size.y };
 }
 
 const CanvasImGui::Point& CanvasImGui::GetLeftTop() noexcept
@@ -126,12 +127,13 @@ const CanvasImGui::Point& CanvasImGui::GetOrigin() noexcept
 
 const CanvasImGui::Point& CanvasImGui::GetRightBottom() noexcept
 {
-	return Point{ m_leftTop.x + m_size.x, m_leftTop.y + m_size.y };
+	return m_rightBottom;
 }
 
 void CanvasImGui::SetSize(const Size& size)
 {
 	m_size = size;
+	m_rightBottom = Point{ m_leftTop.x + m_size.x, m_leftTop.y + m_size.y };
 }
 
 const CanvasImGui::Size& CanvasImGui::GetSize() noexcept

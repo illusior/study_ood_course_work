@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <vector>
+#include <ranges>
 
 #include "../../PositionableImpl.hpp"
 #include "../IPositionableGroup.h"
@@ -10,7 +11,7 @@ namespace illusio::domain
 
 template <typename IBase = IPositionableGroup>
 class PositionableGroup : public PositionableImpl<IBase>
-	, public std::enable_shared_from_this<PositionableGroup<IBase>>
+	, private std::enable_shared_from_this<PositionableGroup<IBase>>
 {
 	// clang-format off
 	// search for passKey idiom: when ctor is hidden for std::make_shared
@@ -18,7 +19,7 @@ class PositionableGroup : public PositionableImpl<IBase>
 	// clang-format on
 
 public:
-	using IPositionable = typename IBase::IPositionable;
+	using MyBasePositionable = PositionableImpl<IBase>;
 
 	using FrameD = typename IBase::FrameD;
 
@@ -33,20 +34,31 @@ public:
 	}
 
 	// <<interface>> IPositionable
-	using UuidOpt = typename IBase::UuidOpt;
 	using PointD = typename IBase::PointD;
-	UuidOpt GetUuidOfPositionableAtPoint(const PointD& point)
+	IPositionableSharedPtr GetPositionableAtPoint(const PointD& p) override
 	{
-		for (auto& positionable : m_positionables)
+		for (auto& positionable : m_positionables | std::views::reverse)
 		{
-			auto res = positionable->GetUuidOfPositionableAtPoint(point);
-			if (res.has_value())
+			if (positionable->IsPositionableContainsPoint(p))
 			{
-				return res;
+				return positionable;
 			}
 		}
 
-		return std::nullopt;
+		return nullptr;
+	}
+
+	IPositionableSharedConstPtr GetPositionableAtPoint(const PointD& p) const override
+	{
+		for (auto& positionable : m_positionables | std::views::reverse)
+		{
+			if (positionable->IsPositionableContainsPoint(p))
+			{
+				return positionable;
+			}
+		}
+
+		return nullptr;
 	}
 
 	FrameD GetFrame() const noexcept final
@@ -63,6 +75,7 @@ public:
 
 	void SetFrame(const FrameD&) final
 	{
+		throw std::runtime_error("[illusio][domain] PositionalGroup<T>::SetFrame not implemented yet");
 	}
 
 	IPositionableGroupSharedPtr GetPositionableGroup() final
@@ -95,6 +108,17 @@ public:
 	size_t GetPositionablesCount() const noexcept final
 	{
 		return m_positionables.size();
+	}
+
+	std::optional<size_t> GetPositionableIndex(const IPositionableSharedPtr& positionable) const noexcept final
+	{
+		auto itBeg = m_positionables.begin();
+		auto it = std::find(itBeg, m_positionables.end(), positionable);
+		if (it == m_positionables.end())
+		{
+			return std::nullopt;
+		}
+		return std::distance(itBeg, it);
 	}
 
 	IPositionableSharedPtr GetPositionable(size_t index) final
@@ -139,7 +163,7 @@ public:
 
 		m_positionables.insert(it, positionable);
 
-		this->EmitChangeSignal();
+		this->EmitChangeSignal(this, positionable.get());
 	}
 
 	void RemovePositionable(size_t index) override
@@ -152,47 +176,39 @@ public:
 		auto it = m_positionables.begin();
 		std::advance(it, index);
 
+		auto& erasing = *it;
 		m_positionables.erase(it);
 
-		this->EmitChangeSignal();
+		this->EmitChangeSignal(this, erasing.get());
 	}
-	// >>>>>>>>>>>>>>>>>>>>>
 
-	// <<interface>> IPositionableGroup
-	using UuidOpt = typename IBase::UuidOpt;
-	void SelectPositionable(const UuidOpt& uuid) override
+	void MovePositionableToIndex(size_t positionableAt, size_t to) final
 	{
-		if (!uuid.has_value())
+		auto posCount = m_positionables.size();
+		if (posCount == 0)
 		{
-			m_selectionFrame = std::nullopt;
 			return;
 		}
 
-		if (this->GetUuid() == uuid)
+		if (positionableAt >= posCount || to > posCount)
 		{
-			m_selectionFrame = GetFrame();
+			throw std::out_of_range("[illusio][domain] Failed to move Positionable at " + std::to_string(positionableAt) + " index. Index is out of range");
 		}
 
-		for (auto& positionable : m_positionables)
+		auto posIt = m_positionables.begin();
+		auto posTo = m_positionables.begin();
+		std::advance(posIt, positionableAt);
+		std::advance(posTo, to);
+		if (posTo == m_positionables.end())
 		{
-			if (positionable->GetUuid() == uuid)
-			{
-				m_selectionFrame = positionable->GetFrame();
-			}
-			if (auto posWithNestedPos = positionable->GetPositionableGroup())
-			{
-				posWithNestedPos->SelectPositionable(uuid);
-				m_selectionFrame = posWithNestedPos->GetSelectionFrame();
-			}
+			--posTo;
 		}
-	}
 
-	using FrameOpt = typename IBase::FrameOpt;
-	const FrameOpt& GetSelectionFrame() const noexcept
-	{
-		return m_selectionFrame;
+		std::iter_swap(posIt, posTo);
+
+		this->EmitChangeSignal(this, (*posTo).get());
 	}
-	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	// >>>>>>>>>>>>>>>>>>>>>
 
 protected:
 	using Connection = typename IBase::Connection;
@@ -203,16 +219,8 @@ protected:
 	}
 
 private:
-	using OnFrameChange = typename IBase::OnFrameChange;
-	Connection DoOnFrameChange(const OnFrameChange&) final
-	{// TODO: see IPositionableGroup.h
-		return Connection();
-	}
-
 	using PositionablesContainer = std::vector<IPositionableSharedPtr>;
 	PositionablesContainer m_positionables;
-
-	FrameOpt m_selectionFrame;
 };
 
 } // namespace illusio::domain

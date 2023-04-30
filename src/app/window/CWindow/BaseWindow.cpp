@@ -21,6 +21,11 @@ bool BaseWindow::IsOpen() const noexcept
 	return m_isOpen;
 }
 
+BaseWindow::Connection BaseWindow::DoOnFiringWindowEvent(const OnWindowEventCallback& handler)
+{
+	return m_windowWeventSignal.connect(handler);
+}
+
 bool BaseWindow::Init()
 {
 	if (m_isInited)
@@ -48,6 +53,11 @@ bool BaseWindow::Close() noexcept
 bool BaseWindow::Initialize()
 {
 	return false;
+}
+
+void BaseWindow::EmitWindowEvent(const event::WindowEvent& evt)
+{
+	m_windowWeventSignal(evt);
 }
 
 } // namespace app::window

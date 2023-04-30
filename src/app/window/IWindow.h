@@ -1,6 +1,11 @@
 ﻿#pragma once
 
+#include <functional>
 #include <string_view>
+
+#include <illusio/common/signals/signal.hpp>
+
+#include "event/WindowEvent.h"
 
 #include "IWindow_fwd.h"
 
@@ -18,6 +23,10 @@ public:
 
 	virtual Title GetTitle() const noexcept = 0;
 	virtual bool IsOpen() const noexcept = 0;
+
+	using Connection = illusio::common::connection;
+	using OnWindowEventCallback = std::function<void(const event::WindowEvent&)>;
+	virtual Connection DoOnFiringWindowEvent(const OnWindowEventCallback& handler) = 0;
 
 	virtual ~IWindow() = default;
 };

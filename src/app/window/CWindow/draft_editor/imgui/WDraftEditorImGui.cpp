@@ -1,9 +1,8 @@
 ﻿#include "pch.h"
 
-#include <app/presenter/draft_editor/DraftPresenter.h>
+#include <app/presenter/draft/DraftPresenter.h>
 #include <illusio/canvas/CCanvas/imgui/CanvasImGui.h>
 #include <illusio/domain/common/size/CSize/SizeD.h>
-#include <libfastsignals/include/signal.h>
 
 #include "WDraftEditorImGui.h"
 
@@ -16,7 +15,9 @@ WDraftEditorImGui::WDraftEditorImGui()
 	: MyBase(TITLE)
 	, m_canvas(std::make_shared<illusio::canvas::CanvasImGui>())
 	, m_draftPresenter(std::make_unique<app::presenter::DraftPresenter>(this))
+	, m_modelSnapshot(nullptr)
 {
+	m_draftPresenter->DoOnModelChange(std::bind(&WDraftEditorImGui::OnPresenterModelChange, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 constexpr ImGuiWindowFlags flags = 0 | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
@@ -63,7 +64,7 @@ void WDraftEditorImGui::AddShape(ShapeType type)
 	auto& canvasLT = m_canvas->GetLeftTop();
 	auto& canvasSize = m_canvas->GetSize();
 	auto center = Point{ canvasLT.x + canvasSize.x / 2 - DEFAULT_SIZE_FOR_SHAPES.width / 2 - m_scrolling.x,
-		canvasLT.y + canvasSize.y / 2 - DEFAULT_SIZE_FOR_SHAPES.height / 2 - m_scrolling.y};
+		canvasLT.y + canvasSize.y / 2 - DEFAULT_SIZE_FOR_SHAPES.height / 2 - m_scrolling.y };
 	m_draftPresenter->AddShape(type, center, DEFAULT_SIZE_FOR_SHAPES);
 }
 
@@ -125,7 +126,6 @@ void WDraftEditorImGui::HandleInput()
 	ImVec2 canvasLeftTopPoint{ float(m_canvas->GetLeftTop().x), float(m_canvas->GetLeftTop().y) };
 
 	ImGui::InvisibleButton("canvas", canvasSize, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-	// const bool is_hovered = ImGui::IsItemHovered();
 	const bool is_active = ImGui::IsItemActive();
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -142,45 +142,66 @@ void WDraftEditorImGui::HandleInput()
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			auto pos = ImGui::GetMousePos();
-			/*std::cout << "x: " << pos.x << " y: " << pos.y << "\n";
-			std::cout << "scrolling x: " << m_scrolling.x << " y: " << m_scrolling.y << "\n";*/
-			auto uuidO = m_draftPresenter->GetUuidOfPositionableAtPoint(Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y });
-			m_draftPresenter->SelectPositionable(uuidO);
 
-			/*std::cout << "id1\n";
-			if (uuidO.has_value())
+			auto windowEvent = event::WindowEvent{};
+			windowEvent.EventType = event::WindowEventType::MouseDown;
+			windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
+
+			if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 			{
-				std::cout << uuidO->data << '\n';
+				windowEvent.KeyBoardKeys.insert(event::Keyboard::LeftCtrl);
 			}
-			else
-			{
-				std::cout << "no" << '\n';
-			}*/
+
+			EmitWindowEvent(windowEvent);
 		}
 	}
+}
+
+void WDraftEditorImGui::OnPresenterModelChange(ModelSnapshot newSnapshot, ChangedValue newValue)
+{
+	m_modelSnapshot = newSnapshot;
+}
+
+void WDraftEditorImGui::AddDraftContentToCanvas()
+{
+	if (m_modelSnapshot == nullptr)
+	{
+		return;
+	}
+
+	m_canvas->SetOrigin(Point{ m_scrolling.x, m_scrolling.y });
+	m_modelSnapshot->AddToCanvas(m_canvas.get());
+
+	AddSelectionFrameToCanvas();
+}
+
+void WDraftEditorImGui::AddSelectionFrameToCanvas()
+{
+	auto selectionFrameOpt = m_draftPresenter->GetSelectionFrame();
+
+	if (!selectionFrameOpt.has_value())
+	{
+		return;
+	}
+
+	auto& selectionFrame = *selectionFrameOpt;
+	auto& size = selectionFrame.size;
+
+	auto frameLT = selectionFrame.pLeftTop;
+	auto frameRT = Point{ frameLT.x + size.width, frameLT.y };
+	auto frameRB = Point{ frameLT.x + size.width, frameLT.y + size.height };
+	auto frameLB = Point{ frameLT.x, frameLT.y + size.height };
+
+	m_canvas->AddPolyline({ frameLT, frameRT, frameRB, frameLB }, m_selectionFrameColor, m_selectionFrameThikness);
 }
 
 void WDraftEditorImGui::RenderContent()
 {
 	ResetCanvas();
 
-	const auto& selectionFrameO = m_draftPresenter->GetSelectionFrame();
-	if (selectionFrameO.has_value())
-	{
-		auto& frame = *selectionFrameO;
-		std::cout << "Frame: lt x: " << frame.pLeftTop.x << " y: " << frame.pLeftTop.y << '\n';
-	}
-	else
-	{
-		std::cout << "NO FRAME" << '\n';
-	}
-
 	HandleInput();
 
-	m_canvas->SetOrigin(Point{ m_scrolling.x, m_scrolling.y });
-
-	auto pos = m_draftPresenter->GetPositionableGroup();
-	pos->AddToCanvas(m_canvas.get());
+	AddDraftContentToCanvas();
 
 	m_canvas->Draw();
 }

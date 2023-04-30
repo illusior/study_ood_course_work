@@ -10,8 +10,6 @@ constexpr auto TITLE = "Main Menu Bar";
 WMainImGui::WMainImGui(GLFWwindow* window)
 	: MyBase(TITLE)
 	, m_window(window)
-	, m_gridToggleSignal()
-	, m_addShapeEventSignal()
 {
 	if (m_window == nullptr)
 	{

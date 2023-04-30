@@ -16,19 +16,14 @@ double CheckPointInsideOfEllipse(const Point& p, const Point& ellipseCenter, con
 	return res;
 }
 
-Ellipse::UuidOpt Ellipse::GetUuidOfPositionableAtPoint(const PointD& point)
+bool Ellipse::IsPositionableContainsPoint(const PointD& point) const noexcept
 {
 	auto frame = GetFrame();
 	auto& size = frame.size;
 	auto& pLT = frame.pLeftTop;
 	auto ellipseCenter = Point{ pLT.x + size.width / 2, pLT.y + size.height / 2 };
 
-	if (CheckPointInsideOfEllipse(point, ellipseCenter, size) <= 1.0)
-	{
-		return GetUuid();
-	}
-
-	return std::nullopt;
+	return CheckPointInsideOfEllipse(point, ellipseCenter, size) <= 1.0;
 }
 
 void Ellipse::AddToCanvas(Canvas canvas) const

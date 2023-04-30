@@ -1,25 +1,32 @@
 ﻿#include "pch.h"
 
-#include <illusio/domain/object/positionable/group/CPositionableGroup/PositionablesDraft.h>
 #include <illusio/domain/object/positionable/shape/solid/CShapeSolid/rectangle/CRectangle/Rectangle.h>
 #include <illusio/domain/object/positionable/shape/solid/CShapeSolid/triangle/CTriangle/Triangle.h>
 #include <illusio/domain/object/positionable/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.h>
 
 #include <illusio/domain/common/style/CStyle/Style.h>
 
+#include "app/model/draft/AppModelPositionablesDraft.h"
 #include "DraftPresenter.h"
 
 namespace app::presenter
 {
 
+using IPositionableGroup = illusio::domain::IPositionableGroup;
+using PositionableGroup = illusio::domain::PositionableGroup<IPositionableGroup>;
+
 DraftPresenter::DraftPresenter(View windowDraft)
-	: m_positionableDraft(std::make_shared<illusio::domain::PositionablesDraft>())
+	: m_positionablesDraft(std::make_shared<model::AppModelPositionablesDraft>())
 	, m_view(windowDraft)
+	, m_selectionGroup(PositionableGroup::Create())
 {
 	if (m_view == nullptr)
 	{
 		throw std::logic_error("[app][presenter] DraftPresenter must be initialized with View. Null given");
 	}
+
+	m_positionablesDraft->DoOnChange(std::bind(&DraftPresenter::OnModelChange, this, std::placeholders::_1, std::placeholders::_2));
+	m_view->DoOnFiringWindowEvent(std::bind(&DraftPresenter::OnViewLeftMouseDown, this, std::placeholders::_1));
 }
 
 constexpr auto DEFAULT_POSITIONABLE_SIZE = 100;
@@ -80,38 +87,59 @@ void AddShapeToDraft(Draft draft, ShapeType shapeType, const Point& startPoint, 
 
 void DraftPresenter::AddShape(ShapeType shapeType, const Point& startPoint, const Size& size)
 {
-	// m_undoManager.
-	AddShapeToDraft(m_positionableDraft.get(), shapeType, startPoint, size);
+	AddShapeToDraft(m_positionablesDraft.get(), shapeType, startPoint, size);
 }
 
-DraftPresenter::IDocument::PositionableGroup DraftPresenter::GetPositionableGroup() const
+DraftPresenter::FrameOpt DraftPresenter::GetSelectionFrame() const
 {
-	return m_positionableDraft->GetPositionableGroup();
+	return m_selectionGroup->GetFrame();
 }
 
-DraftPresenter::UuidOpt DraftPresenter::GetUuidOfPositionableAtPoint(const Point& p)
+DraftPresenter::Connection DraftPresenter::DoOnModelChange(const OnModelChangeCallback& callback)
 {
-	return m_positionableDraft->GetUuidOfPositionableAtPoint(p);
+	return m_positionablesChangeSignal.connect(callback);
 }
 
-void DraftPresenter::SelectPositionable(const UuidOpt& uuid)
+void DraftPresenter::ClearSelection()
 {
-	m_positionableDraft->SelectPositionable(uuid);
+	auto posCount = m_selectionGroup->GetPositionablesCount();
+	if (posCount == 0)
+	{
+		return;
+	}
+
+	for (; posCount > 0; --posCount)
+	{
+		m_selectionGroup->RemovePositionable(posCount - 1);
+	}
 }
 
-const DraftPresenter::FrameOpt& DraftPresenter::GetSelectionFrame() const noexcept
+void DraftPresenter::OnViewLeftMouseDown(const WindowEvent& evt)
 {
-	return m_positionableDraft->GetSelectionFrame();
+	if (evt.EventType != WindowEventType::MouseDown)
+	{
+		return;
+	}
+
+	auto pos = m_positionablesDraft->GetPositionableAtPoint(evt.MouseAt);
+	if (!evt.KeyBoardKeys.contains(window::event::Keyboard::LeftCtrl))
+	{
+		ClearSelection();
+	}
+	if (pos == nullptr)
+	{
+		return;
+	}
+
+	m_selectionGroup->InsertPositionable(pos);
+
+	auto posWasAtIndex = m_positionablesDraft->GetPositionableIndex(pos);
+	m_positionablesDraft->MovePositionableToIndex(*posWasAtIndex, m_positionablesDraft->GetPositionablesCount());
 }
 
-bool DraftPresenter::CanUndo() const noexcept
+void DraftPresenter::OnModelChange(ConstPositionables positionables, ConstPositionable changed)
 {
-	return m_undoManager.CanUndo();
-}
-
-bool DraftPresenter::CanRedo() const noexcept
-{
-	return m_undoManager.CanRedo();
+	m_positionablesChangeSignal(positionables, changed);
 }
 
 } // namespace app::presenter

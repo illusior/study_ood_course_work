@@ -14,10 +14,20 @@ struct Point
 	{
 	}
 
-	constexpr T Distance(const Point& other) const noexcept;
+	constexpr T Distance(const Point& other) const noexcept
+	{
+		return std::sqrt((other.x - x) * (other.x - x) + (other.y - y) * (other.y - y));
+	}
 
-	constexpr bool operator==(const Point& other) const noexcept;
-	constexpr bool operator!=(const Point& other) const noexcept;
+	bool operator==(const Point& other) const noexcept
+	{
+		return x == other.x && y == other.y;
+	}
+
+	constexpr bool operator!=(const Point& other) const noexcept
+	{
+		return !(*this == other);
+	}
 
 	T x, y;
 };

@@ -54,14 +54,9 @@ bool PointInTriangle(const PointD& pt, const PointD& v1, const PointD& v2, const
 	return !(has_neg && has_pos);
 }
 
-Triangle::UuidOpt Triangle::GetUuidOfPositionableAtPoint(const PointD& point)
+bool Triangle::IsPositionableContainsPoint(const PointD& point) const noexcept
 {
-	if (PointInTriangle(point, GetVertex1(), GetVertex2(), GetVertex3()))
-	{
-		return GetUuid();
-	}
-
-	return std::nullopt;
+	return PointInTriangle(point, GetVertex1(), GetVertex2(), GetVertex3());
 }
 
 void Triangle::AddToCanvas(Canvas canvas) const

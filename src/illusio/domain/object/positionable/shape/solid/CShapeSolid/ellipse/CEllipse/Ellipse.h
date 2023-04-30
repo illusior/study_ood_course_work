@@ -18,8 +18,7 @@ public:
 	}
 
 	// <<interface>> IPositionable
-	using UuidOpt = typename IEllipse::UuidOpt;
-	UuidOpt GetUuidOfPositionableAtPoint(const PointD& point);
+	bool IsPositionableContainsPoint(const PointD& point) const noexcept final;
 
 	void AddToCanvas(Canvas canvas) const final;
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>

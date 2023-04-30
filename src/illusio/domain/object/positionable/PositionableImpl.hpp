@@ -18,16 +18,9 @@ public:
 	using PointD = typename IBase::PointD;
 
 	// <<interface>> IPositionable
-	using UuidOpt = typename IBase::UuidOpt;
-	UuidOpt GetUuidOfPositionableAtPoint(const PointD& point)
+	bool IsPositionableContainsPoint(const PointD& point) const noexcept override
 	{
-		if (auto frame = this->GetFrame();
-			frame.ContainsPoint(point))
-		{
-			return this->GetUuid();
-		}
-
-		return std::nullopt;
+		return this->GetFrame().ContainsPoint(point);
 	}
 
 	const PointD& GetBasePoint() const noexcept final
@@ -40,20 +33,15 @@ public:
 		return m_frame;
 	}
 
+	using OnChangePositionableGroupArg = typename IBase::OnChangePositionableGroupArg;
+	using OnChangePositionableArg = typename IBase::OnChangePositionableArg;
 	void SetFrame(const FrameD& frame) override
 	{
 		m_frame = frame;
-		m_frameChanged(m_frame);
-		m_changeSignal();
+		m_changeSignal(OnChangePositionableGroupArg{}, OnChangePositionableArg{ this });
 	}
 
 	using Connection = typename IBase::Connection;
-	using OnFrameChange = typename IBase::OnFrameChange;
-	Connection DoOnFrameChange(const OnFrameChange& handler) override
-	{
-		return m_frameChanged.connect(handler);
-	}
-
 	using OnChange = typename IBase::OnChange;
 	Connection DoOnChange(const OnChange& handler) override
 	{
@@ -89,18 +77,15 @@ protected:
 	{
 	}
 
-	virtual void EmitChangeSignal()
+	void EmitChangeSignal(OnChangePositionableGroupArg positionables, OnChangePositionableArg positionable)
 	{
-		m_changeSignal();
+		m_changeSignal(positionables, positionable);
 	}
 
 private:
-	using Signal = illusio::common::signal<void(const FrameD&)>;
-	using SignalOnChange = illusio::common::signal<void()>;
+	using SignalOnChange = illusio::common::signal<void(OnChangePositionableGroupArg, OnChangePositionableArg)>;
 
 	FrameD m_frame = FrameD{};
-
-	Signal m_frameChanged;
 	SignalOnChange m_changeSignal;
 };
 

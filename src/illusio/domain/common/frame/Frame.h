@@ -35,7 +35,7 @@ struct Frame
 
 	constexpr bool operator==(const Frame<T>& other) const noexcept
 	{
-		return pLeftTop = other.pLeftTop && size == other.size;
+		return pLeftTop == other.pLeftTop && size == other.size;
 	}
 
 	constexpr bool operator!=(const Frame<T>& other) const noexcept
@@ -50,7 +50,10 @@ struct Frame
 template <typename T, typename Container>
 static inline Frame<T> GetMaxFrame(const Container& framesContainer)
 {
-	T minX{}, minY{}, maxX{}, maxY{};
+	T minX = std::numeric_limits<T>::max();
+	T minY = minX;
+	T maxX = std::numeric_limits<T>::min();
+	T maxY = maxX;
 
 	for (const auto& rect : framesContainer)
 	{
@@ -61,7 +64,7 @@ static inline Frame<T> GetMaxFrame(const Container& framesContainer)
 		maxY = std::max(maxY, rect.pLeftTop.y + rect.size.height);
 	}
 
-	return Frame<T>(minX, minY, std::abs(minX + maxX), std::abs(minY + maxY));
+	return Frame<T>(minX, minY, std::abs(maxX - minX), std::abs(maxY - minY));
 }
 
 } // namespace illusio::domain::common::axes

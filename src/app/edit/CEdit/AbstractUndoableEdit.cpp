@@ -59,12 +59,12 @@ void AbstractUndoableEdit::Destroy()
 {
 }
 
-bool AbstractUndoableEdit::AddEdit(const Edit& edit)
+bool AbstractUndoableEdit::AddEdit(const Edit&)
 {
 	return false;
 }
 
-bool AbstractUndoableEdit::ReplaceEdit(const Edit& edit)
+bool AbstractUndoableEdit::ReplaceEdit(const Edit&)
 {
 	return false;
 }

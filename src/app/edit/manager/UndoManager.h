@@ -8,10 +8,10 @@ namespace app::edit
 class UndoManager : private CompoundEdit
 {
 public:
+	// <<interface>> IUndoableEdit
 	using IUndoableEdit::Undo;
 	using IUndoableEdit::Redo;
 
-	// <<interface>> IUndoableEdit
 	bool CanUndo() const final;
 	bool CanRedo() const final;
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -23,7 +23,7 @@ private:
 	bool DerivedExecute() final;
 	bool DerivedUndo() final;
 	bool DerivedRedo() final;
-	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	size_t m_nextEditIndex = 0;
 };

@@ -62,10 +62,6 @@ set(_illusio_lib_headers
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/IPositionableGroup.h
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionableGroup.hpp
 
-				#POSITIONABLES_DRAFT#
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionablesDraft.h
-				#POSITIONABLES_DRAFT#
-
 				#SHAPE#
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/ShapeTypes.h
 
@@ -118,11 +114,6 @@ set(_illusio_lib_sources
 
 		#OBJECT#
 			#POSITIONABLE#
-
-				#POSITIONABLES_DRAFT#
-	${ILLUSIO_LIB_SRC}/domain/object/positionable/group/CPositionableGroup/PositionablesDraft.cpp
-				#POSITIONABLES_DRAFT#
-
 				#SHAPE#
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.cpp
 	${ILLUSIO_LIB_SRC}/domain/object/positionable/shape/solid/CShapeSolid/rectangle/CRectangle/Rectangle.cpp
@@ -179,10 +170,10 @@ set(_illusio_app_headers
 	${ILLUSIO_APP_SRC}/Application.h
 
 		#PRESENTER#
-	${ILLUSIO_APP_SRC}/presenter/IDocument_fwd.h
-	${ILLUSIO_APP_SRC}/presenter/IDocument.h
+	${ILLUSIO_APP_SRC}/presenter/IPositionablesDraftPresenter_fwd.h
+	${ILLUSIO_APP_SRC}/presenter/IPositionablesDraftPresenter.h
 
-	${ILLUSIO_APP_SRC}/presenter/draft_editor/DraftPresenter.h
+	${ILLUSIO_APP_SRC}/presenter/draft/DraftPresenter.h
 		#PRESENTER#
 
 		#EDIT#
@@ -200,9 +191,9 @@ set(_illusio_app_headers
 		#EDIT#
 
 		#MODEL#
-#	${ILLUSIO_APP_SRC}/model/draft_editor/AppModelDraft.h
+	${ILLUSIO_APP_SRC}/model/draft/AppModelPositionablesDraft_fwd.h
 
-#	${ILLUSIO_APP_SRC}/model/positionable/AppModelPositionable.h
+	${ILLUSIO_APP_SRC}/model/draft/AppModelPositionablesDraft.h
 		#MODEL#
 
 		#WINDOW#
@@ -224,9 +215,14 @@ set(_illusio_app_headers
 	${ILLUSIO_APP_SRC}/window/CWindow/main/imgui/WMainImGui.h
 
 	${ILLUSIO_APP_SRC}/window/CWindow/draft_editor/imgui/WDraftEditorImGui.h
-		#WINDOW#
-	#APP#
 
+			#WINDOW_EVENT#
+	${ILLUSIO_APP_SRC}/window/event/WindowEvent.h
+	${ILLUSIO_APP_SRC}/window/event/WindowEventTypes.h
+			#WINDOW_EVENT#
+		#WINDOW#
+
+	#APP#
 )
 
 set(_illusio_app_sources
@@ -239,7 +235,7 @@ set(_illusio_app_sources
 	${ILLUSIO_APP_SRC}/Application.cpp
 
 		#PRESENTER#
-	${ILLUSIO_APP_SRC}/presenter/draft_editor/DraftPresenter.cpp
+	${ILLUSIO_APP_SRC}/presenter/draft/DraftPresenter.cpp
 		#PRESENTER#
 
 		#EDIT#
@@ -251,9 +247,7 @@ set(_illusio_app_sources
 		#EDIT#
 
 		#MODEL#
-#	${ILLUSIO_APP_SRC}/model/draft_editor/AppModelDraft.cpp
-
-#	${ILLUSIO_APP_SRC}/model/positionable/AppModelPositionable.cpp
+	${ILLUSIO_APP_SRC}/model/draft/AppModelPositionablesDraft.cpp
 		#MODEL#
 
 		#WINDOW#
