@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 
 #include <app/presenter/draft/DraftPresenter.h>
+
 #include <illusio/canvas/CCanvas/imgui/CanvasImGui.h>
 #include <illusio/domain/common/size/CSize/SizeD.h>
 
@@ -17,24 +18,8 @@ WDraftEditorImGui::WDraftEditorImGui()
 	, m_draftPresenter(std::make_unique<app::presenter::DraftPresenter>(this))
 	, m_modelSnapshot(nullptr)
 {
-	m_draftPresenter->DoOnModelChange(std::bind(&WDraftEditorImGui::OnPresenterModelChange, this, std::placeholders::_1, std::placeholders::_2));
-}
-
-constexpr ImGuiWindowFlags flags = 0 | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-
-bool WDraftEditorImGui::Begin()
-{
-	// dynamic window resize adjusting
-	const ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(viewport->WorkPos);
-	ImGui::SetNextWindowSize(viewport->WorkSize);
-
-	return IsOpen() && ImGui::Begin(m_title.data(), &m_hasCloseButton, flags);
-}
-
-void WDraftEditorImGui::End()
-{
-	ImGui::End();
+	m_draftPresenter->DoOnModelChange(std::bind(&WDraftEditorImGui::OnPresenterModelChange,
+		this, std::placeholders::_1));
 }
 
 WDraftEditorImGui::CanvasRenderingBoundInfo WDraftEditorImGui::GetCanvasRendernBoundInfo() const
@@ -57,7 +42,7 @@ void WDraftEditorImGui::ToggleGrid() noexcept
 }
 
 using Point = illusio::domain::common::axes::PointD;
-const auto DEFAULT_SIZE_FOR_SHAPES = illusio::domain::common::axes::SizeD{ 100, 100 };
+constexpr auto DEFAULT_SIZE_FOR_SHAPES = illusio::domain::common::axes::SizeD{ 100, 100 };
 
 void WDraftEditorImGui::AddShape(ShapeType type)
 {
@@ -68,12 +53,66 @@ void WDraftEditorImGui::AddShape(ShapeType type)
 	m_draftPresenter->AddShape(type, center, DEFAULT_SIZE_FOR_SHAPES);
 }
 
+void WDraftEditorImGui::RemovePositionablesSelectionFromDraft()
+{
+	m_draftPresenter->RemovePositionablesSelection();
+}
+
 WDraftEditorImGui::CanvasSharedPtr WDraftEditorImGui::GetCanvas()
 {
 	return m_canvas;
 }
 
+// ############################################# Render ###############################################
+
+constexpr ImGuiWindowFlags flags = 0 | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+bool WDraftEditorImGui::Begin()
+{
+	// dynamic window resize adjusting
+	const ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->WorkPos);
+	ImGui::SetNextWindowSize(viewport->WorkSize);
+
+	return IsOpen() && ImGui::Begin(m_title.data(), &m_hasCloseButton, flags);
+}
+
+void WDraftEditorImGui::End()
+{
+	ImGui::End();
+}
+
+void WDraftEditorImGui::RenderContent()
+{
+	ResetCanvas();
+
+	AddDraftContentToCanvas();
+
+	m_canvas->Draw();
+
+	AddOverlay();
+
+	HandleInput();
+}
+
 using Point = illusio::canvas::ICanvas::Point;
+
+void WDraftEditorImGui::ResetCanvas()
+{
+	m_canvas->Clear();
+	m_canvas->SetOrigin(Point{ 0, 0 });
+
+	auto [canvasLeftTopPoint, canvasRightBottomPoint, canvasSize] = GetCanvasRendernBoundInfo();
+
+	m_canvas->SetLeftTop(Point{ canvasLeftTopPoint.x, canvasLeftTopPoint.y });
+	m_canvas->SetSize(Point{ canvasSize.x, canvasSize.y });
+
+	// add backround
+	m_canvas->AddRectFilled(Point{ 0, 0 },
+		Point{ canvasLeftTopPoint.x + canvasRightBottomPoint.x, canvasLeftTopPoint.y + canvasRightBottomPoint.y }, m_backgroundColor);
+
+	AddDraftGridToCanvas();
+}
 
 void WDraftEditorImGui::AddDraftGridToCanvas()
 {
@@ -101,65 +140,6 @@ void WDraftEditorImGui::AddDraftGridToCanvas()
 				m_gridColor);
 		}
 	}
-}
-
-void WDraftEditorImGui::ResetCanvas()
-{
-	m_canvas->Clear();
-	m_canvas->SetOrigin(Point{ 0, 0 });
-
-	auto [canvasLeftTopPoint, canvasRightBottomPoint, canvasSize] = GetCanvasRendernBoundInfo();
-
-	m_canvas->SetLeftTop(Point{ canvasLeftTopPoint.x, canvasLeftTopPoint.y });
-	m_canvas->SetSize(Point{ canvasSize.x, canvasSize.y });
-
-	// add backround
-	m_canvas->AddRectFilled(Point{ 0, 0 },
-		Point{ canvasLeftTopPoint.x + canvasRightBottomPoint.x, canvasLeftTopPoint.y + canvasRightBottomPoint.y }, m_backgroundColor);
-
-	AddDraftGridToCanvas();
-}
-
-void WDraftEditorImGui::HandleInput()
-{
-	ImVec2 canvasSize{ float(m_canvas->GetSize().x), float(m_canvas->GetSize().y) };
-	ImVec2 canvasLeftTopPoint{ float(m_canvas->GetLeftTop().x), float(m_canvas->GetLeftTop().y) };
-
-	ImGui::InvisibleButton("canvas", canvasSize, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-	const bool is_active = ImGui::IsItemActive();
-	ImGuiIO& io = ImGui::GetIO();
-
-	if (is_active)
-	{
-		auto draggingByRightMouseBtn = ImGui::IsMouseDragging(ImGuiMouseButton_Right);
-
-		if (draggingByRightMouseBtn)
-		{
-			m_scrolling.x += io.MouseDelta.x;
-			m_scrolling.y += io.MouseDelta.y;
-		}
-
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-		{
-			auto pos = ImGui::GetMousePos();
-
-			auto windowEvent = event::WindowEvent{};
-			windowEvent.EventType = event::WindowEventType::MouseDown;
-			windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
-
-			if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
-			{
-				windowEvent.KeyBoardKeys.insert(event::Keyboard::LeftCtrl);
-			}
-
-			EmitWindowEvent(windowEvent);
-		}
-	}
-}
-
-void WDraftEditorImGui::OnPresenterModelChange(ModelSnapshot newSnapshot, ChangedValue newValue)
-{
-	m_modelSnapshot = newSnapshot;
 }
 
 void WDraftEditorImGui::AddDraftContentToCanvas()
@@ -195,15 +175,172 @@ void WDraftEditorImGui::AddSelectionFrameToCanvas()
 	m_canvas->AddPolyline({ frameLT, frameRT, frameRB, frameLB }, m_selectionFrameColor, m_selectionFrameThikness);
 }
 
-void WDraftEditorImGui::RenderContent()
+enum class MousePos
 {
-	ResetCanvas();
+	LeftTop = 0,
+	RightTop,
+	LeftBottom,
+	RightBottom,
+};
 
-	HandleInput();
+MousePos GetMousePos()
+{
+	auto mousePos = ImGui::GetMousePos();
+	const auto viewport = ImGui::GetWindowViewport();
+	auto workPos = viewport->WorkPos;
+	auto workSize = viewport->WorkSize;
 
-	AddDraftContentToCanvas();
+	bool isMouseAtLeftSide = (mousePos.x < workPos.x + workSize.x / 2);
+	bool isMouseAtTopSide = (mousePos.y < workPos.y + workSize.y / 2);
 
-	m_canvas->Draw();
+	return (isMouseAtLeftSide && isMouseAtTopSide) // clang-format off
+		? MousePos::LeftTop
+		: (isMouseAtLeftSide && !isMouseAtTopSide)
+			? MousePos::LeftBottom
+			: (!isMouseAtLeftSide && isMouseAtTopSide)
+				? MousePos::RightTop
+				: MousePos::RightBottom; // clang-format on
 }
+
+void WDraftEditorImGui::AddOverlay()
+{
+	auto& io = ImGui::GetIO();
+	auto windowFlags = // clang-format off
+		ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoDecoration |
+		ImGuiWindowFlags_NoDocking |
+		ImGuiWindowFlags_NoFocusOnAppearing |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoNav |
+		ImGuiWindowFlags_NoSavedSettings; // clang-format on
+	auto mousePos = GetMousePos();
+
+	const auto PAD = 10.0f;
+	const auto viewport = ImGui::GetWindowViewport();
+	auto workPos = viewport->WorkPos;
+	auto workSize = viewport->WorkSize;
+	ImVec2 windowPos, windowPosPivot;
+	auto moveAtX = (mousePos == MousePos::LeftTop || mousePos == MousePos::LeftBottom);
+	auto moveAtY = (mousePos == MousePos::LeftTop || mousePos == MousePos::RightTop);
+	windowPos.x = moveAtX
+		? (workPos.x + workSize.x - PAD)
+		: (workPos.x + PAD);
+	windowPos.y = moveAtY
+		? (workPos.y + workSize.y - PAD)
+		: (workPos.y + PAD);
+	windowPosPivot.x = moveAtX
+		? 1.0f
+		: 0.0f;
+	windowPosPivot.y = moveAtY
+		? 1.0f
+		: 0.0f;
+	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always, windowPosPivot);
+	ImGui::SetNextWindowViewport(viewport->ID);
+
+	ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+	if (ImGui::Begin("##", nullptr, windowFlags))
+	{
+		if (ImGui::IsMousePosValid())
+			ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x - m_scrolling.x, io.MousePos.y - m_scrolling.y);
+		else
+			ImGui::Text("Mouse Position: <invalid>");
+	}
+	ImGui::End();
+}
+
+// ############################################# Render ###############################################
+
+// ######################################### Mouse Handling ###########################################
+
+void WDraftEditorImGui::HandleMouseCursorStyle()
+{
+	static auto DEFAULT_MOUSE_CURSOR = ImGui::GetMouseCursor();
+
+	auto mousePos = ImGui::GetMousePos();
+
+	if (m_draftPresenter->IsPointHoversPositionable(Point{ mousePos.x - m_scrolling.x, mousePos.y - m_scrolling.y }))
+	{
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+	}
+	else
+	{
+		ImGui::SetMouseCursor(DEFAULT_MOUSE_CURSOR);
+	}
+}
+
+void WDraftEditorImGui::HandleMouseInput()
+{
+	HandleMouseLeftButton();
+	HandleMouseRightButton();
+}
+
+void WDraftEditorImGui::HandleMouseLeftButton()
+{
+	auto pos = ImGui::GetMousePos();
+
+	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	{
+
+		auto windowEvent = event::WindowEvent{};
+		windowEvent.EventType = event::WindowEventType::MouseDown;
+		windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
+
+		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+		{
+			windowEvent.KeyBoardKeys.insert(event::Keyboard::LeftCtrl);
+		}
+
+		EmitWindowEvent(windowEvent);
+	}
+
+	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+	{
+		auto dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+		auto windowEvent = event::WindowEvent{};
+		windowEvent.EventType = event::WindowEventType::MouseDrag;
+		windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
+		windowEvent.DragDelta = Point{ dragDelta.x, dragDelta.y };
+
+		EmitWindowEvent(windowEvent);
+	}
+}
+
+void WDraftEditorImGui::HandleMouseRightButton()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	auto draggingByRightMouseBtn = ImGui::IsMouseDragging(ImGuiMouseButton_Right);
+	if (draggingByRightMouseBtn)
+	{
+		m_scrolling.x += io.MouseDelta.x;
+		m_scrolling.y += io.MouseDelta.y;
+	}
+}
+
+// ######################################### Mouse Handling ###########################################
+
+// ########################################### Handlers ###############################################
+
+void WDraftEditorImGui::HandleInput()
+{
+	ImVec2 canvasSize{ float(m_canvas->GetSize().x), float(m_canvas->GetSize().y) };
+	ImVec2 canvasLeftTopPoint{ float(m_canvas->GetLeftTop().x), float(m_canvas->GetLeftTop().y) };
+
+	ImGui::InvisibleButton("canvas", canvasSize, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+	const bool is_active = ImGui::IsItemActive();
+
+	if (is_active)
+	{
+		HandleMouseInput();
+	}
+
+	HandleMouseCursorStyle();
+}
+
+void WDraftEditorImGui::OnPresenterModelChange(const DomainPositionableModelEvent& evt)
+{
+	m_modelSnapshot = evt.PositionablesGroup;
+}
+
+// ########################################### Handlers ###############################################
 
 } // namespace app::window

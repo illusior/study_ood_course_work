@@ -15,12 +15,15 @@ void DefaultLayout(IWindowManager& windowManager, GLFWwindow* window)
 	auto mainWindow = std::make_unique<window::WMainImGui>(window);
 	auto draftEditorWindow = std::make_unique<window::WDraftEditorImGui>();
 
-	mainWindow->OnGridToggle([draft = draftEditorWindow.get()]() noexcept {
+	mainWindow->DoOnGridToggle([draft = draftEditorWindow.get()]() noexcept {
 		draft->ToggleGrid();
 	});
 	using ShapeType = illusio::domain::shape::ShapeType;
-	mainWindow->OnAddShape([draft = draftEditorWindow.get()](ShapeType type) noexcept {
+	mainWindow->DoOnAddShape([draft = draftEditorWindow.get()](ShapeType type) noexcept {
 		draft->AddShape(type);
+	});
+	mainWindow->DoOnRemoveShapeSelection([draft = draftEditorWindow.get()]() {
+		draft->RemovePositionablesSelectionFromDraft();
 	});
 
 	windowManager.AddWindow(std::move(mainWindow));

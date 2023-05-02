@@ -52,19 +52,24 @@ void WMainImGui::RenderContent()
 
 	if (ImGui::BeginMenu("Edit"))
 	{
-		ImGui::SeparatorText("Add shapes");
+		ImGui::SeparatorText("Add to canvas");
 
 		if (ImGui::MenuItem("Add rectangle", "Ctrl+N+R"))
 		{
-			m_addShapeEventSignal(ShapeType::Rectangle);
+			m_addShapeSignal(ShapeType::Rectangle);
 		}
 		if (ImGui::MenuItem("Add triangle", "Ctrl+N+T"))
 		{
-			m_addShapeEventSignal(ShapeType::Triangle);
+			m_addShapeSignal(ShapeType::Triangle);
 		}
 		if (ImGui::MenuItem("Add ellipse", "Ctrl+N+E"))
 		{
-			m_addShapeEventSignal(ShapeType::Ellipse);
+			m_addShapeSignal(ShapeType::Ellipse);
+		}
+
+		if (ImGui::MenuItem("Remove selected from canvas", "Delete"))
+		{
+			m_removeSelectedPositionablesSignal();
 		}
 
 		ImGui::SeparatorText("History");
@@ -96,20 +101,30 @@ void WMainImGui::RenderContent()
 
 		ImGui::EndMenu();
 	}
+
+	static ImVec2 closeButtonSize{ 15, 0 };
+	auto& style = ImGui::GetStyle();
+	static float widthNeeded = style.ItemSpacing.x;
+	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - widthNeeded);
+	if (ImGui::Button("x", closeButtonSize))
+	{
+		Close();
+	}
 }
 
-WMainImGui::Connection WMainImGui::OnGridToggle(const OnGridToggleCallback& handler)
+WMainImGui::Connection WMainImGui::DoOnGridToggle(const OnGridToggleCallback& handler)
 {
 	return m_gridToggleSignal.connect(handler);
 }
 
-WMainImGui::Connection WMainImGui::OnAddShape(const OnAddShapeCallback& handler)
+WMainImGui::Connection WMainImGui::DoOnAddShape(const OnAddShapeCallback& handler)
 {
-	return m_addShapeEventSignal.connect(handler);
+	return m_addShapeSignal.connect(handler);
 }
 
-void WMainImGui::EmmitAddShape(ShapeType type)
+WMainImGui::Connection WMainImGui::DoOnRemoveShapeSelection(const OnRemoveShapeCallback& handler)
 {
+	return m_removeSelectedPositionablesSignal.connect(handler);
 }
 
 void WMainImGui::HandleKeyboardInputs()
@@ -123,16 +138,21 @@ void WMainImGui::HandleKeyboardInputs()
 	{
 		if (ImGui::IsKeyPressed(ImGuiKey_E))
 		{
-			m_addShapeEventSignal(ShapeType::Ellipse);
+			m_addShapeSignal(ShapeType::Ellipse);
 		}
 		if (ImGui::IsKeyPressed(ImGuiKey_R))
 		{
-			m_addShapeEventSignal(ShapeType::Rectangle);
+			m_addShapeSignal(ShapeType::Rectangle);
 		}
 		if (ImGui::IsKeyPressed(ImGuiKey_T))
 		{
-			m_addShapeEventSignal(ShapeType::Triangle);
+			m_addShapeSignal(ShapeType::Triangle);
 		}
+	}
+
+	if (ImGui::IsKeyPressed(ImGuiKey_Delete))
+	{
+		m_removeSelectedPositionablesSignal();
 	}
 }
 

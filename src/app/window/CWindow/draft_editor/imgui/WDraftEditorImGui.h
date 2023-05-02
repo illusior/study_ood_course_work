@@ -22,6 +22,7 @@ public:
 	void ToggleGrid() noexcept;
 	using ShapeType = illusio::domain::shape::ShapeType;
 	void AddShape(ShapeType type);
+	void RemovePositionablesSelectionFromDraft();
 
 	using CanvasSharedPtr = illusio::canvas::ICanvasSharedPtr;
 	CanvasSharedPtr GetCanvas();
@@ -41,12 +42,18 @@ private:
 	void AddDraftGridToCanvas();
 	void AddDraftContentToCanvas();
 	void AddSelectionFrameToCanvas();
+	void AddOverlay();
 	void ResetCanvas();
+
 	void HandleInput();
 
-	using ModelSnapshot = presenter::IPositionablesDraftPresenter::ConstPositionables;
-	using ChangedValue = presenter::IPositionablesDraftPresenter::ConstPositionable;
-	void OnPresenterModelChange(ModelSnapshot newSnapshot, ChangedValue newValue);
+	void HandleMouseInput();
+	void HandleMouseLeftButton();
+	void HandleMouseRightButton();
+	void HandleMouseCursorStyle();
+
+	using DomainPositionableModelEvent = presenter::IPositionablesDraftPresenter::DomainPositionableModelEvent;
+	void OnPresenterModelChange(const DomainPositionableModelEvent& evt);
 
 	using CanvasRenderingBoundInfo = std::tuple<ImVec2, ImVec2, ImVec2>; // pointLeftTop, pointRightBottom, size
 	CanvasRenderingBoundInfo GetCanvasRendernBoundInfo() const;
@@ -66,7 +73,7 @@ private:
 	using DraftDocument = presenter::IPositionablesDraftPresenterPtr;
 	DraftDocument m_draftPresenter;
 
-	ModelSnapshot m_modelSnapshot;
+	decltype(DomainPositionableModelEvent::PositionablesGroup) m_modelSnapshot;
 };
 
 } // namespace app::window

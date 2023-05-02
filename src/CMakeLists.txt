@@ -25,6 +25,12 @@ set(_illusio_lib_headers
 	#COMMON#
 
 	#DOMAIN#
+		#DOMAIN_EVENT#
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/event/DomainPositionableModelEvent.h
+
+	${ILLUSIO_LIB_SRC}/domain/object/positionable/event/DomainPositionableModelEventTypes.h
+		#DOMAIN_EVENT#
+
 		#COMMON#
 	${ILLUSIO_LIB_SRC}/domain/common/domain_common.h
 
@@ -190,12 +196,6 @@ set(_illusio_app_headers
 	${ILLUSIO_APP_SRC}/edit/manager/UndoManager.h
 		#EDIT#
 
-		#MODEL#
-	${ILLUSIO_APP_SRC}/model/draft/AppModelPositionablesDraft_fwd.h
-
-	${ILLUSIO_APP_SRC}/model/draft/AppModelPositionablesDraft.h
-		#MODEL#
-
 		#WINDOW#
 	${ILLUSIO_APP_SRC}/window/Layout.h
 
@@ -245,10 +245,6 @@ set(_illusio_app_sources
 
 	${ILLUSIO_APP_SRC}/edit/manager/UndoManager.cpp
 		#EDIT#
-
-		#MODEL#
-	${ILLUSIO_APP_SRC}/model/draft/AppModelPositionablesDraft.cpp
-		#MODEL#
 
 		#WINDOW#
 	${ILLUSIO_APP_SRC}/window/Layout.cpp

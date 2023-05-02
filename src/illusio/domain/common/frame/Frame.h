@@ -52,7 +52,7 @@ static inline Frame<T> GetMaxFrame(const Container& framesContainer)
 {
 	T minX = std::numeric_limits<T>::max();
 	T minY = minX;
-	T maxX = std::numeric_limits<T>::min();
+	T maxX = std::numeric_limits<T>::lowest();
 	T maxY = maxX;
 
 	for (const auto& rect : framesContainer)

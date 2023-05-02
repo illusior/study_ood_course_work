@@ -21,7 +21,9 @@ void ImGuiBackends::Init(GLFWwindow*& window)
 	const auto mode = glfwGetVideoMode(monitor);
 
 	const auto appWidth = ILLUSIO_DEBUG == false ? mode->width : 1024;
-	const auto appHeight = ILLUSIO_DEBUG == false ? mode->height: 720;
+	const auto appHeight = ILLUSIO_DEBUG == false ? mode->height : 720;
+
+	glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
 	// clang-format off
 	window = glfwCreateWindow(appWidth,

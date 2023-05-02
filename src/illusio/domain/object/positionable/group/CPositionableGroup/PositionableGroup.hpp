@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <vector>
 #include <ranges>
+#include <vector>
 
 #include "../../PositionableImpl.hpp"
 #include "../IPositionableGroup.h"
@@ -37,28 +37,14 @@ public:
 	using PointD = typename IBase::PointD;
 	IPositionableSharedPtr GetPositionableAtPoint(const PointD& p) override
 	{
-		for (auto& positionable : m_positionables | std::views::reverse)
-		{
-			if (positionable->IsPositionableContainsPoint(p))
-			{
-				return positionable;
-			}
-		}
-
-		return nullptr;
+		auto idx = _GetPositionableAtPointIndex(p);
+		return (idx.has_value() ? m_positionables[*idx] : nullptr);
 	}
 
 	IPositionableSharedConstPtr GetPositionableAtPoint(const PointD& p) const override
 	{
-		for (auto& positionable : m_positionables | std::views::reverse)
-		{
-			if (positionable->IsPositionableContainsPoint(p))
-			{
-				return positionable;
-			}
-		}
-
-		return nullptr;
+		auto idx = _GetPositionableAtPointIndex(p);
+		return (idx.has_value() ? m_positionables[*idx] : nullptr);
 	}
 
 	FrameD GetFrame() const noexcept final
@@ -73,9 +59,33 @@ public:
 		return domain::common::axes::GetMaxFrame<typename FrameD::DimensionType>(rects);
 	}
 
-	void SetFrame(const FrameD&) final
-	{
-		throw std::runtime_error("[illusio][domain] PositionalGroup<T>::SetFrame not implemented yet");
+	void SetFrame(const FrameD& frame) final
+	{// frame - пришёл новый selectionFrame
+		auto currFrame = GetFrame();
+
+		auto coefX = frame.size.width / currFrame.size.width;
+		auto coefY = frame.size.height / currFrame.size.height;
+
+		bool moveTurnX = // clang-format off
+			frame.pLeftTop.x > currFrame.pLeftTop.x;
+		bool moveTurnY = // clang-format off
+			frame.pLeftTop.y > currFrame.pLeftTop.y; // clang-format on
+
+		for (auto& positionable : m_positionables)
+		{
+			auto posFrame = positionable->GetFrame();
+			auto distanceX = posFrame.pLeftTop.x - currFrame.pLeftTop.x;
+			auto distanceY = posFrame.pLeftTop.y - currFrame.pLeftTop.y;
+
+			auto newPositionableFrame = FrameD{
+				frame.pLeftTop.x + distanceX * coefX,
+				frame.pLeftTop.y + distanceY * coefY,
+				posFrame.size.width * coefX,
+				posFrame.size.height * coefY
+			};
+
+			positionable->SetFrame(newPositionableFrame);
+		}
 	}
 
 	IPositionableGroupSharedPtr GetPositionableGroup() final
@@ -96,8 +106,7 @@ public:
 			throw std::runtime_error("[illusio][PositionableGroup] Can't draw positionables at canvas. Null given");
 		}
 
-		auto positionablesCopy = m_positionables;
-		for (const auto& positionable : positionablesCopy)
+		for (const auto& positionable : m_positionables)
 		{
 			positionable->AddToCanvas(canvas);
 		}
@@ -163,7 +172,12 @@ public:
 
 		m_positionables.insert(it, positionable);
 
-		this->EmitChangeSignal(this, positionable.get());
+		event::DomainPositionableModelEvent evt{};
+		evt.EventType = event::DomainPositionableModelEventTypes::InsertPositionable;
+		evt.PositionableChangedAtIndexInGroup = insertIndex;
+		evt.PositionableEventInitiator = positionable.get();
+		evt.PositionablesGroup = this;
+		this->EmitChangeSignal(evt);
 	}
 
 	void RemovePositionable(size_t index) override
@@ -179,34 +193,43 @@ public:
 		auto& erasing = *it;
 		m_positionables.erase(it);
 
-		this->EmitChangeSignal(this, erasing.get());
+		event::DomainPositionableModelEvent evt{};
+		evt.EventType = event::DomainPositionableModelEventTypes::RemovePositionable;
+		evt.PositionableChangedAtIndexInGroup = index;
+		evt.PositionableEventInitiator = erasing.get();
+		evt.PositionablesGroup = this;
+		this->EmitChangeSignal(evt);
 	}
 
 	void MovePositionableToIndex(size_t positionableAt, size_t to) final
 	{
 		auto posCount = m_positionables.size();
-		if (posCount == 0)
+		if (posCount <= 1)
 		{
 			return;
 		}
 
-		if (positionableAt >= posCount || to > posCount)
+		if (positionableAt >= posCount || to >= posCount)
 		{
 			throw std::out_of_range("[illusio][domain] Failed to move Positionable at " + std::to_string(positionableAt) + " index. Index is out of range");
 		}
 
-		auto posIt = m_positionables.begin();
-		auto posTo = m_positionables.begin();
-		std::advance(posIt, positionableAt);
-		std::advance(posTo, to);
-		if (posTo == m_positionables.end())
+		auto turn = (positionableAt < to);
+		for (size_t i = positionableAt; (turn ? i < to : i > to); i = (turn ? ++i : --i))
 		{
-			--posTo;
+			m_positionables[i].swap(m_positionables[(turn ? i + 1 : i - 1)]);
+			if (!turn && i - 1 == 0)
+			{
+				break;
+			}
 		}
 
-		std::iter_swap(posIt, posTo);
-
-		this->EmitChangeSignal(this, (*posTo).get());
+		event::DomainPositionableModelEvent evt{};
+		evt.EventType = event::DomainPositionableModelEventTypes::Rearranged;
+		evt.PositionableChangedAtIndexInGroup = to;
+		evt.PositionableEventInitiator = m_positionables[to].get();
+		evt.PositionablesGroup = this;
+		this->EmitChangeSignal(evt);
 	}
 	// >>>>>>>>>>>>>>>>>>>>>
 
@@ -219,6 +242,25 @@ protected:
 	}
 
 private:
+	std::optional<size_t> _GetPositionableAtPointIndex(const PointD& p) const
+	{
+		size_t i = GetPositionablesCount() - 1;
+		for (auto& positionable : m_positionables | std::views::reverse)
+		{
+			if (positionable->IsPositionableContainsPoint(p))
+			{
+				return i;
+			}
+			if (i == 0)
+			{
+				break;
+			}
+			--i;
+		}
+
+		return std::nullopt;
+	}
+
 	using PositionablesContainer = std::vector<IPositionableSharedPtr>;
 	PositionablesContainer m_positionables;
 };

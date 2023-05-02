@@ -33,12 +33,10 @@ public:
 		return m_frame;
 	}
 
-	using OnChangePositionableGroupArg = typename IBase::OnChangePositionableGroupArg;
-	using OnChangePositionableArg = typename IBase::OnChangePositionableArg;
+	using DomainPositionableModelEvent = typename IBase::DomainPositionableModelEvent;
 	void SetFrame(const FrameD& frame) override
 	{
 		m_frame = frame;
-		m_changeSignal(OnChangePositionableGroupArg{}, OnChangePositionableArg{ this });
 	}
 
 	using Connection = typename IBase::Connection;
@@ -77,13 +75,13 @@ protected:
 	{
 	}
 
-	void EmitChangeSignal(OnChangePositionableGroupArg positionables, OnChangePositionableArg positionable)
+	void EmitChangeSignal(const DomainPositionableModelEvent& evt)
 	{
-		m_changeSignal(positionables, positionable);
+		m_changeSignal(evt);
 	}
 
 private:
-	using SignalOnChange = illusio::common::signal<void(OnChangePositionableGroupArg, OnChangePositionableArg)>;
+	using SignalOnChange = illusio::common::signal<void(const DomainPositionableModelEvent&)>;
 
 	FrameD m_frame = FrameD{};
 	SignalOnChange m_changeSignal;

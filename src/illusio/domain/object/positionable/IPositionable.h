@@ -14,6 +14,8 @@
 
 #include "canvas/ICanvas.h"
 
+#include "event/DomainPositionableModelEvent.h"
+
 namespace illusio::domain
 {
 
@@ -38,9 +40,8 @@ public:
 	virtual IPositionableGroupSharedConstPtr GetPositionableGroup() const = 0;
 
 	using Connection = illusio::common::connection;
-	using OnChangePositionableGroupArg = IPositionableGroupRawConstPtr;
-	using OnChangePositionableArg = IPositionableRawConstPtr;
-	using OnChange = std::function<void(OnChangePositionableGroupArg, OnChangePositionableArg)>;
+	using DomainPositionableModelEvent = event::DomainPositionableModelEvent;
+	using OnChange = std::function<void(const DomainPositionableModelEvent& evt)>;
 	virtual Connection DoOnChange(const OnChange& handler) = 0;
 
 	virtual ~IPositionable() = default;

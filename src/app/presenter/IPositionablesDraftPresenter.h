@@ -23,13 +23,16 @@ public:
 	using Size = illusio::domain::common::axes::SizeD;
 	virtual void AddShape(ShapeType shapeType, const Point& startPoint, const Size& size) = 0;
 
+	virtual void RemovePositionablesSelection() = 0;
+
 	using FrameOpt = std::optional<illusio::domain::common::axes::FrameD>;
 	virtual FrameOpt GetSelectionFrame() const = 0;
 
+	virtual bool IsPointHoversPositionable(const Point& p) const noexcept = 0;
+
 	using Connection = illusio::common::connection;
-	using ConstPositionables = illusio::domain::IPositionable::OnChangePositionableGroupArg;
-	using ConstPositionable = illusio::domain::IPositionable::OnChangePositionableArg;
-	using OnModelChangeCallback = std::function<void(ConstPositionables, ConstPositionable)>;
+	using DomainPositionableModelEvent = illusio::domain::IPositionable::DomainPositionableModelEvent;
+	using OnModelChangeCallback = std::function<void(const DomainPositionableModelEvent&)>;
 	virtual Connection DoOnModelChange(const OnModelChangeCallback& callback) = 0;
 
 	virtual ~IPositionablesDraftPresenter() = default;

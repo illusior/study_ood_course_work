@@ -6,6 +6,7 @@ namespace app::window::event
 enum class Keyboard
 {
 	LeftCtrl = 0,
+	Delete,
 };
 
 enum class WindowEventType

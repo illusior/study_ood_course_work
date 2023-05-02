@@ -1,12 +1,13 @@
 ﻿#include "pch.h"
 
+#include <illusio/domain/object/positionable/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.h>
 #include <illusio/domain/object/positionable/shape/solid/CShapeSolid/rectangle/CRectangle/Rectangle.h>
 #include <illusio/domain/object/positionable/shape/solid/CShapeSolid/triangle/CTriangle/Triangle.h>
-#include <illusio/domain/object/positionable/shape/solid/CShapeSolid/ellipse/CEllipse/Ellipse.h>
 
 #include <illusio/domain/common/style/CStyle/Style.h>
 
-#include "app/model/draft/AppModelPositionablesDraft.h"
+#include <illusio/domain/object/positionable/group/CPositionableGroup/PositionableGroup.hpp>
+
 #include "DraftPresenter.h"
 
 namespace app::presenter
@@ -16,7 +17,7 @@ using IPositionableGroup = illusio::domain::IPositionableGroup;
 using PositionableGroup = illusio::domain::PositionableGroup<IPositionableGroup>;
 
 DraftPresenter::DraftPresenter(View windowDraft)
-	: m_positionablesDraft(std::make_shared<model::AppModelPositionablesDraft>())
+	: m_positionablesDraft(PositionableGroup::Create())
 	, m_view(windowDraft)
 	, m_selectionGroup(PositionableGroup::Create())
 {
@@ -25,7 +26,9 @@ DraftPresenter::DraftPresenter(View windowDraft)
 		throw std::logic_error("[app][presenter] DraftPresenter must be initialized with View. Null given");
 	}
 
-	m_positionablesDraft->DoOnChange(std::bind(&DraftPresenter::OnModelChange, this, std::placeholders::_1, std::placeholders::_2));
+	m_positionablesDraft->DoOnChange(std::bind(&DraftPresenter::OnModelChange, this, std::placeholders::_1));
+	m_view->DoOnFiringWindowEvent(std::bind(&DraftPresenter::OnViewLeftMouseDragging, this, std::placeholders::_1));
+	m_view->DoOnFiringWindowEvent(std::bind(&DraftPresenter::OnViewKeyboardDown, this, std::placeholders::_1));
 	m_view->DoOnFiringWindowEvent(std::bind(&DraftPresenter::OnViewLeftMouseDown, this, std::placeholders::_1));
 }
 
@@ -90,6 +93,11 @@ void DraftPresenter::AddShape(ShapeType shapeType, const Point& startPoint, cons
 	AddShapeToDraft(m_positionablesDraft.get(), shapeType, startPoint, size);
 }
 
+void DraftPresenter::RemovePositionablesSelection()
+{
+	RemovePositionablesSelectionFromModel();
+}
+
 DraftPresenter::FrameOpt DraftPresenter::GetSelectionFrame() const
 {
 	return m_selectionGroup->GetFrame();
@@ -114,6 +122,56 @@ void DraftPresenter::ClearSelection()
 	}
 }
 
+void DraftPresenter::RemovePositionablesSelectionFromModel()
+{
+	const auto posCount = m_selectionGroup->GetPositionablesCount();
+	for (size_t i = 0; i < posCount; ++i)
+	{
+		auto positionable = m_selectionGroup->GetPositionable(i);
+		auto positionableIndexAtDraftOpt = m_positionablesDraft->GetPositionableIndex(positionable);
+		if (positionableIndexAtDraftOpt.has_value())
+		{
+			m_positionablesDraft->RemovePositionable(*positionableIndexAtDraftOpt);
+		}
+	}
+
+	ClearSelection();
+}
+
+bool DraftPresenter::IsPointHoversPositionable(const Point& p) const noexcept
+{
+	return bool(m_positionablesDraft->GetPositionableAtPoint(p));
+}
+
+void DraftPresenter::OnModelChange(const DomainPositionableModelEvent& evt)
+{
+	m_positionablesChangeSignal(evt);
+
+	if (evt.EventType != illusio::domain::event::DomainPositionableModelEventTypes::InsertPositionable)
+	{
+		return;
+	}
+
+	ClearSelection();
+	if (m_positionablesDraft->GetPositionablesCount() > evt.PositionableChangedAtIndexInGroup)
+	{
+		auto pos = m_positionablesDraft->GetPositionable(evt.PositionableChangedAtIndexInGroup);
+		m_selectionGroup->InsertPositionable(pos);
+	}
+}
+
+// ########################################## View event handler ########################################
+
+void DraftPresenter::OnViewKeyboardDown(const WindowEvent& evt)
+{
+	if (!evt.KeyBoardKeys.contains(window::event::Keyboard::Delete))
+	{
+		return;
+	}
+
+	RemovePositionablesSelectionFromModel();
+}
+
 void DraftPresenter::OnViewLeftMouseDown(const WindowEvent& evt)
 {
 	if (evt.EventType != WindowEventType::MouseDown)
@@ -122,24 +180,75 @@ void DraftPresenter::OnViewLeftMouseDown(const WindowEvent& evt)
 	}
 
 	auto pos = m_positionablesDraft->GetPositionableAtPoint(evt.MouseAt);
-	if (!evt.KeyBoardKeys.contains(window::event::Keyboard::LeftCtrl))
-	{
-		ClearSelection();
-	}
+	bool collectingButtonPressed = evt.KeyBoardKeys.contains(window::event::Keyboard::LeftCtrl);
 	if (pos == nullptr)
-	{
+	{ // clicked at empty point (missclicked)
+		ClearSelection();
 		return;
 	}
 
-	m_selectionGroup->InsertPositionable(pos);
+	auto posIndexInSelection = m_selectionGroup->GetPositionableIndex(pos);
+	auto isPosInSelection = posIndexInSelection.has_value();
+	if (collectingButtonPressed && isPosInSelection)
+	{
+		m_selectionGroup->RemovePositionable(*posIndexInSelection);
+		return;
+	}
+	if (!collectingButtonPressed && !isPosInSelection)
+	{
+		ClearSelection();
+	}
+	if (!isPosInSelection)
+	{
+		m_selectionGroup->InsertPositionable(pos);
+	}
 
-	auto posWasAtIndex = m_positionablesDraft->GetPositionableIndex(pos);
-	m_positionablesDraft->MovePositionableToIndex(*posWasAtIndex, m_positionablesDraft->GetPositionablesCount());
+	MoveSelectionToTop();
 }
 
-void DraftPresenter::OnModelChange(ConstPositionables positionables, ConstPositionable changed)
+void DraftPresenter::MoveSelectionToTop()
 {
-	m_positionablesChangeSignal(positionables, changed);
+	const auto posInSelectionCount = m_selectionGroup->GetPositionablesCount();
+	const auto posInModelCount = m_positionablesDraft->GetPositionablesCount();
+	for (size_t i = 0; i < posInSelectionCount; ++i)
+	{
+		auto posInSelection = m_selectionGroup->GetPositionable(i);
+		auto posWasAtIndex = m_positionablesDraft->GetPositionableIndex(posInSelection);
+		m_positionablesDraft->MovePositionableToIndex(*posWasAtIndex, posInModelCount - 1);
+	}
 }
+
+void DraftPresenter::OnViewLeftMouseDragging(const WindowEvent& evt)
+{
+	if (evt.EventType != window::event::WindowEventType::MouseDrag || m_selectionGroup->GetPositionablesCount() == 0)
+	{
+		m_dragging = false;
+		m_dragStartAtPoint_leftTopSelection_delta = Point{};
+		m_dragStartAtPoint = Point{};
+		return;
+	}
+
+	auto currSelectionFrame = m_selectionGroup->GetFrame();
+	
+	// new value of currSelectionFrame's pLeftTop must NOT be recurrent, otherwise you'll see flickering selection
+	if (!m_dragging)
+	{
+		m_dragStartAtPoint = Point{
+			evt.MouseAt.x,
+			evt.MouseAt.y
+		};
+		m_dragStartAtPoint_leftTopSelection_delta = Point{
+			evt.MouseAt.x - currSelectionFrame.pLeftTop.x,
+			evt.MouseAt.y - currSelectionFrame.pLeftTop.y
+		};
+		m_dragging = true;
+	}
+	currSelectionFrame.pLeftTop.x = m_dragStartAtPoint.x + evt.DragDelta.x - m_dragStartAtPoint_leftTopSelection_delta.x;
+	currSelectionFrame.pLeftTop.y = m_dragStartAtPoint.y + evt.DragDelta.y - m_dragStartAtPoint_leftTopSelection_delta.y;
+
+	m_selectionGroup->SetFrame(currSelectionFrame);
+}
+
+// ########################################## View event handler ########################################
 
 } // namespace app::presenter

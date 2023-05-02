@@ -21,13 +21,14 @@ public:
 
 	using Connection = illusio::common::connection;
 	using OnGridToggleCallback = std::function<void()>;
-	Connection OnGridToggle(const OnGridToggleCallback& handler);
+	Connection DoOnGridToggle(const OnGridToggleCallback& handler);
 
 	using ShapeType = illusio::domain::shape::ShapeType;
 	using OnAddShapeCallback = std::function<void(ShapeType)>;
-	Connection OnAddShape(const OnAddShapeCallback& handler);
+	Connection DoOnAddShape(const OnAddShapeCallback& handler);
 
-	void EmmitAddShape(ShapeType type);
+	using OnRemoveShapeCallback = std::function<void()>;
+	Connection DoOnRemoveShapeSelection(const OnRemoveShapeCallback& handler);
 
 private:
 	// <<abstract>> BaseWindow
@@ -49,7 +50,10 @@ private:
 	GridToggleSignal m_gridToggleSignal;
 
 	using AddShapeEventSignal = illusio::common::signal<void(ShapeType)>;
-	AddShapeEventSignal m_addShapeEventSignal;
+	AddShapeEventSignal m_addShapeSignal;
+
+	using RemoveShapeEventSignal = illusio::common::signal<void()>;
+	RemoveShapeEventSignal m_removeSelectedPositionablesSignal;
 };
 
 } // namespace app::window
