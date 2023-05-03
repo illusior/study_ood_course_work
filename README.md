@@ -1,4 +1,4 @@
-﻿# Course work on the subject OOD
+﻿# OOD's course work
 
 ### **Build:**
 
@@ -12,7 +12,7 @@ cmake -S . -B build -G "Your Generator"
 ### **Tasks:**
 
 #### **Main:**
-Develop an application using the MVC, MVC or MVVM pattern an application
+Develop an application using the MVC, MVP or MVVM pattern an application
 that allows you to create a composition of geometric shapes:
 rectangles, triangles, ellipses
 
