@@ -1,5 +1,14 @@
 ﻿# Course work on the subject OOD
 
+### **Build:**
+
+1. `CMake` (tested for `MSVC`and `Ninja`)
+```
+cmake -S . -B build -G "Your Generator"
+```
+2. Go to `.\build`
+3. Build with `make` or `Visual Studio`
+
 ### **Tasks:**
 
 #### **Main:**
@@ -10,11 +19,15 @@ rectangles, triangles, ellipses
 #### **Additional:**
 
 - History of actions: cancellation and repetition of operations <br>
-    Using **Command Pattern**
+    Using **Command Pattern** <br>
+    *Not implemented*
 - Saving a document in a convenient format _(`.json`, `.xml` ...)_ <br>
-    Using ?
-- Inserting bitmap images
-- Code coverage by tests
+    Using Visitor? <br>
+    *Not implemented*
+- Inserting bitmap images <br>
+    *Not implemented*
+- Code coverage by tests <br>
+    *Not implemented*
 
 ## **Stack:**
 
@@ -23,11 +36,11 @@ rectangles, triangles, ellipses
 - opengl
 - [catch2](https://github.com/catchorg/Catch2)
 - [boost](https://github.com/boostorg/boost) (_uuid_)
-- [ISpringTech's FastSignal](https://github.com/ispringtech/FastSignals/)
+- my own fork of [ISpringTech's FastSignal](https://github.com/beta442/ispring_fast_signals)
 
 ## **Patterns:**
 
 - Command
 - Observer
 - Composite
-- ...
+- Visitor
