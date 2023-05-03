@@ -58,7 +58,7 @@ void CanvasImGui::AddFilledEllipse(const Point& topLeft, const Point& bottomRigh
 		h = (bottomRight.y - topLeft.y) / 2;
 	std::vector<ImVec2> points;
 	auto imDrawList = ImGui::GetWindowDrawList();
-	auto pointsNum = imDrawList->_CalcCircleAutoSegmentCount(std::max(w, h));
+	auto pointsNum = imDrawList->_CalcCircleAutoSegmentCount(std::abs(std::max(w, h)));
 	points.reserve(pointsNum);
 	for (float a = 0.0f; a <= doublePi; a += (doublePi / pointsNum))
 	{

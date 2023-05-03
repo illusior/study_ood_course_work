@@ -66,11 +66,6 @@ public:
 		auto coefX = frame.size.width / currFrame.size.width;
 		auto coefY = frame.size.height / currFrame.size.height;
 
-		bool moveTurnX = // clang-format off
-			frame.pLeftTop.x > currFrame.pLeftTop.x;
-		bool moveTurnY = // clang-format off
-			frame.pLeftTop.y > currFrame.pLeftTop.y; // clang-format on
-
 		for (auto& positionable : m_positionables)
 		{
 			auto posFrame = positionable->GetFrame();

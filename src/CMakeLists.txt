@@ -215,6 +215,8 @@ set(_illusio_app_headers
 	${ILLUSIO_APP_SRC}/window/CWindow/main/imgui/WMainImGui.h
 
 	${ILLUSIO_APP_SRC}/window/CWindow/draft_editor/imgui/WDraftEditorImGui.h
+	${ILLUSIO_APP_SRC}/window/CWindow/draft_editor/event/WindowDraftEditorEvent.h
+	${ILLUSIO_APP_SRC}/window/CWindow/draft_editor/event/WindowDraftEditorEventTypes.h
 
 			#WINDOW_EVENT#
 	${ILLUSIO_APP_SRC}/window/event/WindowEvent.h

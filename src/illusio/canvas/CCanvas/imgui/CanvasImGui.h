@@ -37,8 +37,8 @@ public:
 	// >>>>>>>>>>>>>>>>>>>>>
 
 private:
-	Point m_origin, m_leftTop, m_rightBottom;
-	Size m_size;
+	Point m_origin{}, m_leftTop{}, m_rightBottom{};
+	Size m_size{};
 
 	using DrawAction = std::function<void()>;
 	using DrawActionSequence = std::vector<DrawAction>;

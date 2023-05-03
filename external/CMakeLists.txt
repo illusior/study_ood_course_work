@@ -135,6 +135,8 @@ set(BOOST_STACKTRACE_ENABLE_WINDBG_CACHED OFF)
 
 set(BOOST_INCLUDE_LIBRARIES uuid)
 
+message(STATUS "Configuring Boost")
+
 FetchContent_MakeAvailable(Boost)
 
 ## Boost ##
@@ -152,7 +154,7 @@ if(NOT fastsignals_POPULATED)
 	message(STATUS "Fetching ISpringTech's FastSignals")
 	FetchContent_Populate(FastSignals)
 
-	message(STATUS "Configuring Boost")
+	message(STATUS "Configuring ISpringTech's FastSignals")
 	add_subdirectory(${fastsignals_SOURCE_DIR} ${fastsignals_BINARY_DIR})
 
 	set(fastsignals_SOURCE_DIR

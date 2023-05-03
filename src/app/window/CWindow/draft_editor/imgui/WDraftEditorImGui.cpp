@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
 
-#include <app/presenter/draft/DraftPresenter.h>
-
 #include <illusio/canvas/CCanvas/imgui/CanvasImGui.h>
 #include <illusio/domain/common/size/CSize/SizeD.h>
+
+#include "app/presenter/draft/DraftPresenter.h"
 
 #include "WDraftEditorImGui.h"
 
@@ -17,8 +17,11 @@ WDraftEditorImGui::WDraftEditorImGui()
 	, m_canvas(std::make_shared<illusio::canvas::CanvasImGui>())
 	, m_draftPresenter(std::make_unique<app::presenter::DraftPresenter>(this))
 	, m_modelSnapshot(nullptr)
+	, m_resizePositionableSignal()
 {
 	m_draftPresenter->DoOnModelChange(std::bind(&WDraftEditorImGui::OnPresenterModelChange,
+		this, std::placeholders::_1));
+	m_draftPresenter->DoOnSelectionFrameChange(std::bind(&WDraftEditorImGui::OnPresenterSelectionFrameChange,
 		this, std::placeholders::_1));
 }
 
@@ -31,7 +34,7 @@ WDraftEditorImGui::CanvasRenderingBoundInfo WDraftEditorImGui::GetCanvasRendernB
 	return { pLT, pRB, size };
 }
 
-bool WDraftEditorImGui::IsGridEnabled() noexcept
+bool WDraftEditorImGui::IsGridEnabled() const noexcept
 {
 	return m_isGridEnabled;
 }
@@ -58,14 +61,155 @@ void WDraftEditorImGui::RemovePositionablesSelectionFromDraft()
 	m_draftPresenter->RemovePositionablesSelection();
 }
 
-WDraftEditorImGui::CanvasSharedPtr WDraftEditorImGui::GetCanvas()
+WDraftEditorImGui::Connection WDraftEditorImGui::DoOnPositionableResize(const OnPositionableResizeCallback& handler)
 {
-	return m_canvas;
+	return m_resizePositionableSignal.connect(handler);
 }
+
+WDraftEditorImGui::Connection WDraftEditorImGui::DoOnDraggingResizing(const OnDraggingResizingCallback& handler)
+{
+	return m_resizingDraggingInfoSignal.connect(handler);
+}
+
+void WDraftEditorImGui::CalculateResizersCornerPoints()
+{
+	if (!m_selectionFrame.has_value())
+	{
+		return;
+	}
+
+	auto& selectionFrame = *m_selectionFrame;
+
+	Points resizeMarkersPoints{};
+	resizeMarkersPoints.reserve(2 * m_selectionFrameMarkersCount);
+
+	using namespace illusio::domain::common::axes;
+	FrameStrider<decltype(selectionFrame.pLeftTop.x)> frameStrider{ selectionFrame,
+		m_selectionFrameMarkersCount, m_selectionFrameMarkersPadding };
+
+	auto frameMiddleX = selectionFrame.pLeftTop.x + selectionFrame.size.width / 2;
+	auto frameMiddleY = selectionFrame.pLeftTop.y + selectionFrame.size.height / 2;
+	for (auto& markerAnchor : frameStrider)
+	{
+		auto leftHandX = markerAnchor.x < frameMiddleX;
+		auto middleX = markerAnchor.x == frameMiddleX;
+		auto leftHandY = markerAnchor.y < frameMiddleY;
+		auto middleY = markerAnchor.y == frameMiddleY;
+
+		auto& markerPad = m_selectionFrameMarkersPadding;
+		auto offsetX = middleX
+			? 0
+			: leftHandX
+			? -markerPad
+			: markerPad;
+		auto offsetY = middleY
+			? 0
+			: leftHandY
+			? -markerPad
+			: markerPad;
+		resizeMarkersPoints.emplace_back(markerAnchor.x + offsetX - m_selectionFrameMarkersSize / 2,
+			markerAnchor.y + offsetY - m_selectionFrameMarkersSize / 2);
+
+		auto& markerSize = m_selectionFrameMarkersSize;
+		auto& pLeftTop = resizeMarkersPoints.back();
+		resizeMarkersPoints.emplace_back(pLeftTop.x + markerSize,
+			pLeftTop.y + markerSize);
+	}
+	m_resizersOppositeCorners = resizeMarkersPoints;
+}
+
+WDraftEditorImGui::ResizeDirectionOpt WDraftEditorImGui::GetResizeDirection() const noexcept
+{
+	const auto& frameSelectionOpt = m_selectionFrame;
+	if (!ImGui::IsMousePosValid() || !frameSelectionOpt.has_value())
+	{
+		return std::nullopt;
+	}
+
+	const auto mousePos = ImGui::GetMousePos();
+
+	const auto& frameSelection = *frameSelectionOpt;
+	const auto& selectionLeftTop = frameSelection.pLeftTop;
+	const auto& selectionSize = frameSelection.size;
+	const auto selectionMiddleX = selectionLeftTop.x + selectionSize.width / 2;
+	const auto selectionMiddleY = selectionLeftTop.y + selectionSize.height / 2;
+
+	const auto& resizerSize = m_selectionFrameMarkersSize;
+	const auto selectionLeftSideWithPaddingX = selectionLeftTop.x - m_selectionFrameMarkersPadding - resizerSize;
+	const auto selectionTopSideWithPaddingY = selectionLeftTop.y - m_selectionFrameMarkersPadding - resizerSize;
+	const auto selectionLeftSideWithPaddingOppositeX = selectionLeftTop.x + m_selectionFrameMarkersPadding + resizerSize;
+	const auto selectionTopSideWithPaddingOppositeY = selectionLeftTop.y + m_selectionFrameMarkersPadding + resizerSize;
+	for (size_t i = 1, total = m_resizersOppositeCorners.size(); i < total; ++(++i))
+	{
+		const auto& leftTop = m_resizersOppositeCorners[i - 1];
+		const auto& rightBottom = m_resizersOppositeCorners[i];
+
+		if (auto inX = (mousePos.x >= leftTop.x && mousePos.x <= rightBottom.x),
+			inY = (mousePos.y >= leftTop.y && mousePos.y <= rightBottom.y);
+			inX && inY)
+		{
+			auto atLeftSideOfSelection = (leftTop.x >= selectionLeftSideWithPaddingX) && (leftTop.x <= selectionLeftSideWithPaddingOppositeX);
+			auto atMiddleSideOfSelectionX = (leftTop.x <= selectionMiddleX && selectionMiddleX <= rightBottom.x);
+			auto atTopSideOfSelection = (leftTop.y >= selectionTopSideWithPaddingY) && (leftTop.y <= selectionTopSideWithPaddingOppositeY);
+			auto atMiddleSideOfSelectionY = (leftTop.y <= selectionMiddleY && selectionMiddleY <= rightBottom.y);
+
+			if (atLeftSideOfSelection)
+			{
+				if (atTopSideOfSelection)
+				{
+					return ResizeDirection::NW;
+				}
+				if (atMiddleSideOfSelectionY)
+				{
+					return ResizeDirection::W;
+				}
+				return ResizeDirection::SW;
+			}
+			if (atMiddleSideOfSelectionX)
+			{
+				if (atTopSideOfSelection)
+				{
+					return ResizeDirection::N;
+				}
+				return ResizeDirection::S;
+			}
+			if (!atLeftSideOfSelection && !atMiddleSideOfSelectionX)
+			{
+				if (atTopSideOfSelection)
+				{
+					return ResizeDirection::NE;
+				}
+				if (atMiddleSideOfSelectionY)
+				{
+					return ResizeDirection::E;
+				}
+				return ResizeDirection::SE;
+			}
+
+			break;
+		}
+	}
+
+	return std::nullopt;
+}
+
+void WDraftEditorImGui::OnPresenterSelectionFrameChange(const FrameOpt& frame)
+{
+	m_selectionFrame = frame;
+
+	CalculateResizersCornerPoints();
+}
+
+using Frame = illusio::domain::common::axes::FrameD;
 
 // ############################################# Render ###############################################
 
-constexpr ImGuiWindowFlags flags = 0 | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus;
+// clang-format off
+constexpr ImGuiWindowFlags flags = 0 |
+	ImGuiWindowFlags_NoTitleBar |
+	ImGuiWindowFlags_NoResize |
+	ImGuiWindowFlags_NoMove |
+	ImGuiWindowFlags_NoBringToFrontOnFocus; // clang-format on
 
 bool WDraftEditorImGui::Begin()
 {
@@ -155,9 +299,23 @@ void WDraftEditorImGui::AddDraftContentToCanvas()
 	AddSelectionFrameToCanvas();
 }
 
+using Points = std::vector<Point>;
+using Frame = illusio::domain::common::axes::FrameD;
+Points GetFrameCornerPoints(const Frame& frame)
+{
+	auto& size = frame.size;
+
+	auto frameLT = frame.pLeftTop;
+	auto frameRT = Point{ frameLT.x + size.width, frameLT.y };
+	auto frameRB = Point{ frameLT.x + size.width, frameLT.y + size.height };
+	auto frameLB = Point{ frameLT.x, frameLT.y + size.height };
+
+	return { frameLT, frameRT, frameRB, frameLB };
+}
+
 void WDraftEditorImGui::AddSelectionFrameToCanvas()
 {
-	auto selectionFrameOpt = m_draftPresenter->GetSelectionFrame();
+	auto& selectionFrameOpt = m_selectionFrame;
 
 	if (!selectionFrameOpt.has_value())
 	{
@@ -165,14 +323,25 @@ void WDraftEditorImGui::AddSelectionFrameToCanvas()
 	}
 
 	auto& selectionFrame = *selectionFrameOpt;
-	auto& size = selectionFrame.size;
 
-	auto frameLT = selectionFrame.pLeftTop;
-	auto frameRT = Point{ frameLT.x + size.width, frameLT.y };
-	auto frameRB = Point{ frameLT.x + size.width, frameLT.y + size.height };
-	auto frameLB = Point{ frameLT.x, frameLT.y + size.height };
+	m_canvas->AddPolyline(GetFrameCornerPoints(selectionFrame),
+		m_selectionFrameColor, m_selectionFrameThikness);
 
-	m_canvas->AddPolyline({ frameLT, frameRT, frameRB, frameLB }, m_selectionFrameColor, m_selectionFrameThikness);
+	AddSelectionFrameResizerMarks();
+}
+
+void WDraftEditorImGui::AddSelectionFrameResizerMarks()
+{
+	if (!m_selectionFrame.has_value())
+	{
+		return;
+	}
+
+	for (size_t i = 1, total = m_resizersOppositeCorners.size(); i <= total - 1; ++(++i))
+	{
+		m_canvas->AddRectFilled(m_resizersOppositeCorners[i - 1],
+			m_resizersOppositeCorners[i], m_selectionFrameMarekrsFillColor);
+	}
 }
 
 enum class MousePos
@@ -240,6 +409,15 @@ void WDraftEditorImGui::AddOverlay()
 	ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
 	if (ImGui::Begin("##", nullptr, windowFlags))
 	{
+		ImGui::SeparatorText("Input controls");
+
+		ImGui::Text("Left mouse to select");
+		ImGui::Text("   (+ LeftCtrl for multiselection)");
+		ImGui::Text("Right mouse to move canvas");
+		ImGui::Text("See edit tab for more");
+
+		ImGui::SeparatorText("Mouse info");
+
 		if (ImGui::IsMousePosValid())
 			ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x - m_scrolling.x, io.MousePos.y - m_scrolling.y);
 		else
@@ -257,63 +435,174 @@ void WDraftEditorImGui::HandleMouseCursorStyle()
 	static auto DEFAULT_MOUSE_CURSOR = ImGui::GetMouseCursor();
 
 	auto mousePos = ImGui::GetMousePos();
+	auto relMousePos = Point{ mousePos.x - m_scrolling.x, mousePos.y - m_scrolling.y };
 
-	if (m_draftPresenter->IsPointHoversPositionable(Point{ mousePos.x - m_scrolling.x, mousePos.y - m_scrolling.y }))
+	ImGui::SetMouseCursor(DEFAULT_MOUSE_CURSOR);
+	if (m_draftPresenter->IsPointHoversPositionable(relMousePos))
 	{
 		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		return;
 	}
-	else
+
+	HandleMouseCursorStyleOverResizers();
+}
+
+void WDraftEditorImGui::HandleMouseCursorStyleOverResizers()
+{
+	auto& selectionFrameOpt = m_selectionFrame;
+	if (!selectionFrameOpt.has_value() || m_resizersOppositeCorners.size() == 0)
 	{
-		ImGui::SetMouseCursor(DEFAULT_MOUSE_CURSOR);
+		return;
+	}
+
+	auto mousePos = ImGui::GetMousePos();
+	auto relMousePos = Point{ mousePos.x - m_scrolling.x, mousePos.y - m_scrolling.y };
+
+	auto& selectionFrame = *selectionFrameOpt;
+
+	auto& selectionLeftTopP = selectionFrame.pLeftTop;
+	auto& selectionSize = selectionFrame.size;
+	auto selectionWidthX = selectionLeftTopP.x + selectionSize.width;
+	auto selectionHeightY = selectionLeftTopP.y + selectionSize.height;
+	for (size_t i = 1, total = m_resizersOppositeCorners.size(); i <= total - 1; ++(++i))
+	{
+		auto& leftTopCorner = m_resizersOppositeCorners[i - 1];
+		auto& rightBottomCorner = m_resizersOppositeCorners[i];
+		auto mouseInResizerX = relMousePos.x >= leftTopCorner.x && relMousePos.x <= leftTopCorner.x + m_selectionFrameMarkersSize;
+		auto mouseInResizerY = relMousePos.y >= leftTopCorner.y && relMousePos.y <= leftTopCorner.y + m_selectionFrameMarkersSize;
+		auto mouseInResizer = mouseInResizerX && mouseInResizerY;
+
+		if (mouseInResizer && (leftTopCorner.y <= selectionLeftTopP.y || rightBottomCorner.y >= selectionHeightY))
+		{
+			ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+			return;
+		}
+		if (mouseInResizer && (leftTopCorner.x <= selectionLeftTopP.x || rightBottomCorner.x >= selectionWidthX))
+		{
+			ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+			return;
+		}
 	}
 }
 
 void WDraftEditorImGui::HandleMouseInput()
 {
-	HandleMouseLeftButton();
+	HandleMouseLeftButtonClicked();
+	HandleMouseLeftButtonDraggingOverWorkArea();
 	HandleMouseRightButton();
 }
 
-void WDraftEditorImGui::HandleMouseLeftButton()
+void WDraftEditorImGui::HandleMouseLeftButtonClicked()
 {
+	if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	{
+		m_resizingDraggingInfoSignal(false, false);
+		return;
+	}
+
+
+	auto windowEvent = event::WindowDraftEditorEvent{};
+	windowEvent.EventType = event::WindowEventType::MouseDown;
 	auto pos = ImGui::GetMousePos();
+	windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
 
-	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 	{
-
-		auto windowEvent = event::WindowEvent{};
-		windowEvent.EventType = event::WindowEventType::MouseDown;
-		windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
-
-		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
-		{
-			windowEvent.KeyBoardKeys.insert(event::Keyboard::LeftCtrl);
-		}
-
-		EmitWindowEvent(windowEvent);
+		windowEvent.KeyBoardKeys.insert(event::Keyboard::LeftCtrl);
 	}
 
-	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+	auto mouseAtResizerOpt = GetResizeDirection();
+	auto isMouseAtResizer = mouseAtResizerOpt.has_value();
+	if (isMouseAtResizer)
 	{
-		auto dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-		auto windowEvent = event::WindowEvent{};
-		windowEvent.EventType = event::WindowEventType::MouseDrag;
-		windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
-		windowEvent.DragDelta = Point{ dragDelta.x, dragDelta.y };
-
+		m_resizingDraggingInfoSignal(true, false);
+		windowEvent.ResizeDirection = *mouseAtResizerOpt;
+		m_resizePositionableSignal(windowEvent);
+	}
+	else
+	{
+		auto isHoveringCanvasItem = m_draftPresenter->IsPointHoversPositionable(windowEvent.MouseAt);
+		m_resizingDraggingInfoSignal(false, isHoveringCanvasItem);
 		EmitWindowEvent(windowEvent);
 	}
+}
+
+void WDraftEditorImGui::HandleMouseLeftButtonDraggingOverWorkArea()
+{
+	if (!ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+	{
+		m_resizingDraggingInfoSignal(false, false);
+		return;
+	}
+
+	auto pos = ImGui::GetMousePos();
+	auto dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+
+	auto windowEvent = event::WindowDraftEditorEvent{};
+	windowEvent.EventType = event::WindowEventType::MouseDrag;
+	windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
+	windowEvent.DragDelta = Point{ dragDelta.x, dragDelta.y };
+
+	auto isHoveringCanvasItem = m_draftPresenter->IsPointHoversPositionable(windowEvent.MouseAt);
+
+	m_resizingDraggingInfoSignal(false, isHoveringCanvasItem);
+	EmitWindowEvent(windowEvent);
+}
+
+void WDraftEditorImGui::HandleMouseLeftButtonDraggingOverResizers()
+{
+	if (!ImGui::IsMouseDragging(ImGuiMouseButton_Left) && !ImGui::IsMouseDown(ImGuiMouseButton_Left))
+	{
+		m_resizingDraggingInfoSignal(false, false);
+		return;
+	}
+
+	auto mouseAtResizerOpt = GetResizeDirection();
+	if (!mouseAtResizerOpt.has_value())
+	{
+		return;
+	}
+
+	auto pos = ImGui::GetMousePos();
+	auto dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+
+	auto windowEvent = event::WindowDraftEditorEvent{};
+	windowEvent.EventType = event::WindowEventType::MouseDrag;
+	windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
+	windowEvent.DragDelta = Point{ dragDelta.x, dragDelta.y };
+
+	m_resizingDraggingInfoSignal(true, false);
+
+	windowEvent.ResizeDirection = *mouseAtResizerOpt;
+	m_resizePositionableSignal(windowEvent);
 }
 
 void WDraftEditorImGui::HandleMouseRightButton()
 {
-	ImGuiIO& io = ImGui::GetIO();
-	auto draggingByRightMouseBtn = ImGui::IsMouseDragging(ImGuiMouseButton_Right);
-	if (draggingByRightMouseBtn)
+	if (!ImGui::IsMouseDragging(ImGuiMouseButton_Right))
 	{
-		m_scrolling.x += io.MouseDelta.x;
-		m_scrolling.y += io.MouseDelta.y;
+		return;
 	}
+
+	ImGuiIO& io = ImGui::GetIO();
+	m_scrolling.x += io.MouseDelta.x;
+	m_scrolling.y += io.MouseDelta.y;
+}
+
+void WDraftEditorImGui::HandleMouseUp()
+{
+	if (!ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+	{
+		return;
+	}
+	auto pos = ImGui::GetMousePos();
+
+	auto windowEvent = event::WindowEvent{};
+	windowEvent.EventType = event::WindowEventType::MouseUp;
+	windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
+
+	EmitWindowEvent(windowEvent);
+	m_resizingDraggingInfoSignal(false, false);
 }
 
 // ######################################### Mouse Handling ###########################################
@@ -328,9 +617,17 @@ void WDraftEditorImGui::HandleInput()
 	ImGui::InvisibleButton("canvas", canvasSize, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 	const bool is_active = ImGui::IsItemActive();
 
-	if (is_active)
+	if (ImGui::IsMousePosValid())
 	{
-		HandleMouseInput();
+		HandleMouseLeftButtonDraggingOverResizers();
+
+		if (is_active)
+		{ // in work area
+			HandleMouseInput();
+		}
+
+		// mouseUp triggers only outside of invisible button
+		HandleMouseUp();
 	}
 
 	HandleMouseCursorStyle();
