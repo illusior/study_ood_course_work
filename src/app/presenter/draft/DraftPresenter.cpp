@@ -338,33 +338,44 @@ void DraftPresenter::OnViewResizeSelection(const WindowDraftEditorEvent& evt)
 		return;
 	}
 
-	// SetDraggingInfo(evt);
+	SetDraggingInfo(evt);
 	// evt.DragDelta
 	// evt.EventType
 	// evt.KeyBoardKeys
 	// evt.MouseAt
 	// evt.ResizeDirection - only for WindowDraftEditorEvent. not WindowEvent
 
-	// auto currSelectionFrame = m_selectionGroup->GetFrame();
+	auto currSelectionFrame = m_selectionGroup->GetFrame();
 
-	// auto& resizeDirection = evt.ResizeDirection;
-	// auto resizingAtTop = TopDirection.contains(resizeDirection);
-	// auto resizingAtRight = RightDirection.contains(resizeDirection);
-	// auto resizingAtDown = DownDirection.contains(resizeDirection);
-	// auto resizingAtLeft = LeftDirection.contains(resizeDirection);
-	// if (resizingAtTop)
-	//{
-	//	currSelectionFrame.pLeftTop.y = m_selectionStartLeftTop.y + evt.DragDelta.y;
-	//	// currSelectionFrame.size.height = m_selectionStartSize.height + evt.DragDelta.y;
-	//	if (resizingAtLeft || resizingAtRight)
-	//	{
-	//		// currSelectionFrame.pLeftTop.x += evt.DragDelta.x;
-	//	}
-	// }
+	auto& resizeDirection = evt.ResizeDirection;
+	auto resizingAtTop = TopDirection.contains(resizeDirection);
+	auto resizingAtRight = RightDirection.contains(resizeDirection);
+	auto resizingAtDown = DownDirection.contains(resizeDirection);
+	auto resizingAtLeft = LeftDirection.contains(resizeDirection);
+	auto movingLeftAtX = evt.DragDelta.x <= 0;
+	auto movingUpAtY = evt.DragDelta.y <= 0;
+	if (resizingAtTop)
+	{
+		currSelectionFrame.pLeftTop.y = m_dragStartAtPoint.y + evt.DragDelta.y;
+		currSelectionFrame.size.height = m_selectionStartSize.height - evt.DragDelta.y;
+	 }
+	if (resizingAtLeft)
+	{
+		currSelectionFrame.pLeftTop.x = m_dragStartAtPoint.x + evt.DragDelta.x;
+		currSelectionFrame.size.width = m_selectionStartSize.width - evt.DragDelta.x;
+	}
+	if (resizingAtRight)
+	{
+		currSelectionFrame.size.width = m_selectionStartSize.width + evt.DragDelta.x;
+	}
+	if (resizingAtDown)
+	{
+		currSelectionFrame.size.height = m_selectionStartSize.height + evt.DragDelta.y;
+	}
 
-	// m_selectionGroup->SetFrame(currSelectionFrame);
+	m_selectionGroup->SetFrame(currSelectionFrame);
 
-	// EmitSelectionFrameChangeSignal();
+	EmitSelectionFrameChangeSignal();
 
 	std::cout << "Resize! " << size_t(evt.ResizeDirection) << '\n';
 }

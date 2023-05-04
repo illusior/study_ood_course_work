@@ -87,8 +87,8 @@ private:
 	ImU32 m_selectionFrameColor = IM_COL32(0, 255, 0, 255);
 	float m_selectionFrameThikness = 1.0f;
 	size_t m_selectionFrameMarkersCount = 8;
-	float m_selectionFrameMarkersSize = 8.0f;
-	float m_selectionFrameMarkersPadding = 4.0f;
+	float m_selectionFrameMarkersSize = 10.0f;
+	float m_selectionFrameMarkersPadding = 2.0f;
 	ImU32 m_selectionFrameMarekrsFillColor = IM_COL32(123, 213, 255, 255);
 
 	ImVec2 m_scrolling = ImVec2(0, 0);
