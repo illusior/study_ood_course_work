@@ -501,7 +501,7 @@ void WDraftEditorImGui::HandleMouseLeftButtonClicked()
 	}
 
 
-	auto windowEvent = event::WindowDraftEditorEvent{};
+	auto windowEvent = event::WindowDraftEditorEvent();
 	windowEvent.EventType = event::WindowEventType::MouseDown;
 	auto pos = ImGui::GetMousePos();
 	windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
@@ -516,7 +516,7 @@ void WDraftEditorImGui::HandleMouseLeftButtonClicked()
 	if (isMouseAtResizer)
 	{
 		m_resizingDraggingInfoSignal(true, false);
-		windowEvent.ResizeDirection = *mouseAtResizerOpt;
+		windowEvent.resizeDirection = *mouseAtResizerOpt;
 		m_resizePositionableSignal(windowEvent);
 	}
 	else
@@ -538,7 +538,7 @@ void WDraftEditorImGui::HandleMouseLeftButtonDraggingOverWorkArea()
 	auto pos = ImGui::GetMousePos();
 	auto dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
 
-	auto windowEvent = event::WindowDraftEditorEvent{};
+	auto windowEvent = event::WindowDraftEditorEvent();
 	windowEvent.EventType = event::WindowEventType::MouseDrag;
 	windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
 	windowEvent.DragDelta = Point{ dragDelta.x, dragDelta.y };
@@ -566,14 +566,14 @@ void WDraftEditorImGui::HandleMouseLeftButtonDraggingOverResizers()
 	auto pos = ImGui::GetMousePos();
 	auto dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
 
-	auto windowEvent = event::WindowDraftEditorEvent{};
+	auto windowEvent = event::WindowDraftEditorEvent();
 	windowEvent.EventType = event::WindowEventType::MouseDrag;
 	windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
 	windowEvent.DragDelta = Point{ dragDelta.x, dragDelta.y };
 
 	m_resizingDraggingInfoSignal(true, false);
 
-	windowEvent.ResizeDirection = *mouseAtResizerOpt;
+	windowEvent.resizeDirection = *mouseAtResizerOpt;
 	m_resizePositionableSignal(windowEvent);
 }
 
@@ -597,7 +597,7 @@ void WDraftEditorImGui::HandleMouseUp()
 	}
 	auto pos = ImGui::GetMousePos();
 
-	auto windowEvent = event::WindowEvent{};
+	auto windowEvent = event::WindowEvent();
 	windowEvent.EventType = event::WindowEventType::MouseUp;
 	windowEvent.MouseAt = Point{ pos.x - m_scrolling.x, pos.y - m_scrolling.y };
 

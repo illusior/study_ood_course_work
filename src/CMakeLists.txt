@@ -171,7 +171,7 @@ set(_illusio_app_headers
 
 	#APP#
 
-	${ILLUSIO_APP_SRC}/Defenitions.h
+	${ILLUSIO_APP_SRC}/defenitions.h
 
 	${ILLUSIO_APP_SRC}/Application.h
 

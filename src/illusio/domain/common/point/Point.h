@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <cmath>
+
 namespace illusio::domain::common::axes
 {
 
@@ -7,8 +9,8 @@ template <typename T>
 struct Point
 {
 	explicit constexpr Point() = default;
-	template <typename T>
-	explicit constexpr Point(T x, T y)
+	template <typename vT>
+	explicit constexpr Point(vT x, vT y)
 		: x(x)
 		, y(y)
 	{

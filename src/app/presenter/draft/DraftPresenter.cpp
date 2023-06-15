@@ -347,7 +347,7 @@ void DraftPresenter::OnViewResizeSelection(const WindowDraftEditorEvent& evt)
 
 	auto currSelectionFrame = m_selectionGroup->GetFrame();
 
-	auto& resizeDirection = evt.ResizeDirection;
+	auto& resizeDirection = evt.resizeDirection;
 	auto resizingAtTop = TopDirection.contains(resizeDirection);
 	auto resizingAtRight = RightDirection.contains(resizeDirection);
 	auto resizingAtDown = DownDirection.contains(resizeDirection);
@@ -377,7 +377,7 @@ void DraftPresenter::OnViewResizeSelection(const WindowDraftEditorEvent& evt)
 
 	EmitSelectionFrameChangeSignal();
 
-	std::cout << "Resize! " << size_t(evt.ResizeDirection) << '\n';
+	std::cout << "Resize! " << size_t(evt.resizeDirection) << '\n';
 }
 
 // ########################################## View event handler ########################################

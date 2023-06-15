@@ -9,7 +9,7 @@ namespace app::window::event
 
 struct WindowDraftEditorEvent : WindowEvent
 {
-	ResizeDirection ResizeDirection;
+	ResizeDirection resizeDirection;
 };
 
 } // namespace app::window::event
